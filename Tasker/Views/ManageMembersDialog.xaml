@@ -1,0 +1,46 @@
+﻿<Window x:Class="TaskManager.Views.ManageMembersDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Управление участниками" Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        Style="{StaticResource MaterialDesignWindow}">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="👥 Управление участниками" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+
+        <!-- Инвайт -->
+        <Border Grid.Row="1" Background="{DynamicResource MaterialDesignPaper}" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="📧 Пригласить участника" FontWeight="Bold" Margin="0,0,0,8"/>
+                <TextBox x:Name="EmailTextBox" materialDesign:HintAssist.Hint="Email пользователя" Margin="0,0,0,8"/>
+                <ComboBox x:Name="TeamComboBox" DisplayMemberPath="Name" materialDesign:HintAssist.Hint="Выбрать команду (опционально)" Margin="0,0,0,8"/>
+                <Button Content="📨 Отправить приглашение" Click="SendInvitation_Click" Style="{StaticResource MaterialDesignRaisedButton}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Список участников -->
+        <TextBlock Grid.Row="2" Text="👥 Текущие участники" FontWeight="Bold" Margin="0,0,0,8"/>
+        <ListBox Grid.Row="2" x:Name="MembersListBox" Margin="0,0,0,16" Grid.RowSpan="2">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="12" Margin="4" Background="{DynamicResource MaterialDesignPaper}" CornerRadius="8">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Username}" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{Binding Email}" FontSize="11" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Button Grid.Row="3" Content="Закрыть" Click="CloseButton_Click" Style="{StaticResource MaterialDesignOutlinedButton}" HorizontalAlignment="Right"/>
+    </Grid>
+</Window>

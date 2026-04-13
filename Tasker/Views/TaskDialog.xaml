@@ -1,0 +1,69 @@
+﻿<Window x:Class="TaskManager.Views.TaskDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Задача" Height="550" Width="500"
+        WindowStartupLocation="CenterOwner"
+        Style="{StaticResource MaterialDesignWindow}">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Создание/Редактирование задачи" 
+                   FontSize="20" FontWeight="Bold"
+                   Margin="0,0,0,16"/>
+
+        <TextBox Grid.Row="1" x:Name="TitleTextBox" 
+                 materialDesign:HintAssist.Hint="Название задачи"
+                 Margin="0,0,0,12"/>
+
+        <TextBox Grid.Row="2" x:Name="DescriptionTextBox" 
+                 materialDesign:HintAssist.Hint="Описание"
+                 TextWrapping="Wrap"
+                 Height="100"
+                 AcceptsReturn="True"
+                 Margin="0,0,0,12"/>
+
+        <DatePicker Grid.Row="3" x:Name="DueDatePicker" 
+                    SelectedDate="{Binding DueDate, FallbackValue={x:Static sys:DateTime.Now}}"
+                    Margin="0,0,0,12"/>
+
+        <ComboBox Grid.Row="4" x:Name="PriorityComboBox" 
+                  Margin="0,0,0,12">
+            <ComboBoxItem Content="Обычная" Tag="Normal"/>
+            <ComboBoxItem Content="Срочно" Tag="Urgent"/>
+        </ComboBox>
+
+        <ComboBox Grid.Row="5" x:Name="TeamComboBox" 
+                  DisplayMemberPath="Name"
+                  materialDesign:HintAssist.Hint="Команда (опционально)"
+                  Margin="0,0,0,12"/>
+
+        <ComboBox Grid.Row="6" x:Name="StatusComboBox" 
+                  Margin="0,0,0,24">
+            <ComboBoxItem Content="Нужно сделать" Tag="Todo"/>
+            <ComboBoxItem Content="В работе" Tag="InProgress"/>
+            <ComboBoxItem Content="Готово" Tag="Done"/>
+        </ComboBox>
+
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Отмена" 
+                    Click="CancelButton_Click"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
+            <Button Content="Сохранить" 
+                    Click="SaveButton_Click"
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+        </StackPanel>
+    </Grid>
+</Window>
