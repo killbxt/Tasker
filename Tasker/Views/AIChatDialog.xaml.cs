@@ -252,7 +252,9 @@ namespace TaskManager.Views
         public string Text { get; set; } = string.Empty;
         public bool IsUser { get; set; }
         public bool IsLoading { get; set; } = false;
-        public string BackgroundColor => IsUser ? "#2196F3" : "#4CAF50";
+        public string BackgroundColor => IsUser ? "#264F78" : "#333333";
+
+        public string ForegroundColor => IsUser ? "#FFFFFF" : "#CCCCCC";
         public HorizontalAlignment Alignment => IsUser ? HorizontalAlignment.Right : HorizontalAlignment.Left;
     }
 

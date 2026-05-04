@@ -81,7 +81,7 @@ namespace TaskManager.ViewModels
             }
         }
 
-        public string PriorityColor => Priority == Models.TaskPriority.Urgent ? "#FF5252" : "#2196F3";
+        public string PriorityColor => Priority == Models.TaskPriority.Urgent ? "#F14C4C" : "#3794FF";
 
         public string PlannedWindowText
         {

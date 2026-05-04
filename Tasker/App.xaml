@@ -6,47 +6,153 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- VS Code-like dark theme -->
                 <materialDesign:BundledTheme BaseTheme="Dark"
                                             PrimaryColor="Grey"
                                             SecondaryColor="Blue" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- App-level surfaces -->
+            <!-- VS Code Dark+ palette (approx.) -->
+            <SolidColorBrush x:Key="VsCodeEditorBg" Color="#FF1E1E1E"/>
+            <SolidColorBrush x:Key="VsCodeSidebarBg" Color="#FF252526"/>
+            <SolidColorBrush x:Key="VsCodeTitleBarBg" Color="#FF323233"/>
+            <SolidColorBrush x:Key="VsCodePanelBg" Color="#FF2D2D2D"/>
+            <SolidColorBrush x:Key="VsCodeBorder" Color="#FF3C3C3C"/>
+            <SolidColorBrush x:Key="VsCodeBorderSubtle" Color="#FF474747"/>
+            <SolidColorBrush x:Key="VsCodeForeground" Color="#FFCCCCCC"/>
+            <SolidColorBrush x:Key="VsCodeForegroundMuted" Color="#FF858585"/>
+            <SolidColorBrush x:Key="VsCodeAccentBlue" Color="#FF3794FF"/>
+            <SolidColorBrush x:Key="VsCodeButtonBg" Color="#FF0E639C"/>
+            <SolidColorBrush x:Key="VsCodeButtonBgHover" Color="#FF1177BB"/>
+            <SolidColorBrush x:Key="VsCodeListHover" Color="#FF2A2D2E"/>
+            <SolidColorBrush x:Key="VsCodeListActive" Color="#FF094771"/>
+            <SolidColorBrush x:Key="VsCodeStripeTodo" Color="#FFCCA700"/>
+            <SolidColorBrush x:Key="VsCodeStripeProgress" Color="#FF3794FF"/>
+            <SolidColorBrush x:Key="VsCodeStripeDone" Color="#FF89D185"/>
+
+            <!-- Aliases used across app -->
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FF1E1E1E"/>
             <SolidColorBrush x:Key="AppPanelBrush" Color="#FF252526"/>
             <SolidColorBrush x:Key="AppBorderBrush" Color="#FF3C3C3C"/>
 
+            <!-- Override MaterialDesign to match VS Code surfaces -->
+            <SolidColorBrush x:Key="MaterialDesignPaper" Color="#FF252526"/>
+            <SolidColorBrush x:Key="MaterialDesignCardBackground" Color="#FF2D2D2D"/>
+            <SolidColorBrush x:Key="MaterialDesignToolBarBackground" Color="#FF323233"/>
+            <SolidColorBrush x:Key="MaterialDesignBody" Color="#FFCCCCCC"/>
+            <SolidColorBrush x:Key="MaterialDesignBodyLight" Color="#FF858585"/>
+            <SolidColorBrush x:Key="MaterialDesignDivider" Color="#FF3C3C3C"/>
+            <SolidColorBrush x:Key="MaterialDesignTextBoxHoverBackground" Color="#FF3C3C3C"/>
+            <SolidColorBrush x:Key="MaterialDesignTextFieldBoxBackground" Color="#FF3C3C3C"/>
+            <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#FF3794FF"/>
+
             <Style TargetType="Window" BasedOn="{StaticResource MaterialDesignWindow}">
-                <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
+                <Setter Property="Background" Value="{StaticResource VsCodeEditorBg}"/>
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="13"/>
             </Style>
 
-            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                <Setter Property="Height" Value="36"/>
-                <Setter Property="Padding" Value="12,6"/>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
             </Style>
-            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignFilledTextBox}"/>
-            <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignFilledPasswordBox}"/>
+
+            <!-- Flat toolbar / icon buttons (VS Code-like) -->
+            <Style x:Key="VsCodeIconButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
+                <Setter Property="Width" Value="32"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="Padding" Value="4"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+
+            <!-- Primary action: VS Code blue button -->
+            <Style x:Key="VsCodePrimaryButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Background" Value="{StaticResource VsCodeButtonBg}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="Padding" Value="14,4"/>
+                <Setter Property="FontSize" Value="13"/>
+            </Style>
+
+            <Style x:Key="VsCodeSecondaryButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorderSubtle}"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="Padding" Value="14,4"/>
+                <Setter Property="FontSize" Value="13"/>
+            </Style>
+
+            <!-- Default buttons: closer to VS Code -->
+            <Style TargetType="Button" BasedOn="{StaticResource VsCodePrimaryButton}"/>
+
+            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+                <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
+            </Style>
+            <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+                <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
+            </Style>
+            <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+                <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
+            </Style>
+            <Style TargetType="DatePicker" BasedOn="{StaticResource MaterialDesignOutlinedDatePicker}">
+                <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
+            </Style>
+
+            <Style TargetType="ListBox">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+
+            <Style TargetType="DataGrid">
+                <Setter Property="Background" Value="{StaticResource VsCodeEditorBg}"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="RowBackground" Value="{StaticResource VsCodeEditorBg}"/>
+                <Setter Property="AlternatingRowBackground" Value="{StaticResource VsCodeSidebarBg}"/>
+                <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource VsCodeBorder}"/>
+                <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+                <Setter Property="HeadersVisibility" Value="Column"/>
+                <Setter Property="FontSize" Value="13"/>
+            </Style>
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="{StaticResource VsCodePanelBg}"/>
+                <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
+                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+            </Style>
 
             <Style x:Key="TaskCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource MaterialDesignCardBackground}"/>
-                <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Margin" Value="8"/>
-                <Setter Property="Padding" Value="12"/>
-                <Setter Property="Effect">
-                    <Setter.Value>
-                        <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2"/>
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="Background" Value="{StaticResource VsCodePanelBg}"/>
+                <Setter Property="CornerRadius" Value="2"/>
+                <Setter Property="Margin" Value="6,4"/>
+                <Setter Property="Padding" Value="10,8"/>
+                <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorderSubtle}"/>
+                <Setter Property="BorderThickness" Value="1"/>
             </Style>
 
+            <!-- Panel card: minimal radius like VS Code settings sections -->
             <Style x:Key="AppPanelStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource AppPanelBrush}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}"/>
+                <Setter Property="Background" Value="{StaticResource VsCodeSidebarBg}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="12"/>
-                <Setter Property="Padding" Value="20"/>
+                <Setter Property="CornerRadius" Value="2"/>
+                <Setter Property="Padding" Value="16"/>
+            </Style>
+
+            <!-- Title strip (window / dialog header) -->
+            <Style x:Key="VsCodeTitleBarBorder" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource VsCodeTitleBarBg}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorderSubtle}"/>
+                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                <Setter Property="Padding" Value="12,8"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

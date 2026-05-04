@@ -1,97 +1,100 @@
 ﻿<Window x:Class="TaskManager.Views.TaskDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Задача" Height="640" Width="520"
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid Margin="16">
+    <Grid Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Создание/Редактирование задачи" 
-                   FontSize="20" FontWeight="Bold"
-                   Margin="0,0,0,16"/>
+        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
+            <TextBlock Text="Задача"
+                       FontWeight="SemiBold"
+                       FontSize="13"/>
+        </Border>
 
-        <TextBox Grid.Row="1" x:Name="TitleTextBox" 
-                 materialDesign:HintAssist.Hint="Название задачи"
-                 Margin="0,0,0,12"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12">
+            <StackPanel>
+                <TextBox x:Name="TitleTextBox"
+                         materialDesign:HintAssist.Hint="Название"
+                         Margin="0,0,0,10"/>
 
-        <TextBox Grid.Row="2" x:Name="DescriptionTextBox" 
-                 materialDesign:HintAssist.Hint="Описание"
-                 TextWrapping="Wrap"
-                 Height="100"
-                 AcceptsReturn="True"
-                 Margin="0,0,0,12"/>
+                <TextBox x:Name="DescriptionTextBox"
+                         materialDesign:HintAssist.Hint="Описание"
+                         TextWrapping="Wrap"
+                         Height="100"
+                         AcceptsReturn="True"
+                         Margin="0,0,0,10"/>
 
-        <Grid Grid.Row="3" Margin="0,0,0,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-            <DatePicker Grid.Column="0" x:Name="StartDatePicker"
-                        materialDesign:HintAssist.Hint="Начало (дата)"
-                        Margin="0,0,8,0"/>
-            <TextBox Grid.Column="1" x:Name="StartTimeTextBox"
-                     materialDesign:HintAssist.Hint="HH:mm"
-                     Width="80"
-                     VerticalContentAlignment="Center"
-                     Margin="0,0,12,0"/>
+                    <DatePicker Grid.Column="0" x:Name="StartDatePicker"
+                                materialDesign:HintAssist.Hint="Начало (дата)"
+                                Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1" x:Name="StartTimeTextBox"
+                             materialDesign:HintAssist.Hint="HH:mm"
+                             Width="80"
+                             VerticalContentAlignment="Center"
+                             Margin="0,0,12,0"/>
 
-            <DatePicker Grid.Column="2" x:Name="EndDatePicker"
-                        materialDesign:HintAssist.Hint="Окончание (дата)"/>
-            <TextBox Grid.Column="3" x:Name="EndTimeTextBox"
-                     materialDesign:HintAssist.Hint="HH:mm"
-                     Width="80"
-                     VerticalContentAlignment="Center"
-                     Margin="8,0,0,0"/>
-        </Grid>
+                    <DatePicker Grid.Column="2" x:Name="EndDatePicker"
+                                materialDesign:HintAssist.Hint="Окончание (дата)"/>
+                    <TextBox Grid.Column="3" x:Name="EndTimeTextBox"
+                             materialDesign:HintAssist.Hint="HH:mm"
+                             Width="80"
+                             VerticalContentAlignment="Center"
+                             Margin="8,0,0,0"/>
+                </Grid>
 
-        <ComboBox Grid.Row="4" x:Name="PriorityComboBox" 
-                  Margin="0,0,0,12">
-            <ComboBoxItem Content="Обычная" Tag="Normal"/>
-            <ComboBoxItem Content="Срочно" Tag="Urgent"/>
-        </ComboBox>
+                <ComboBox x:Name="PriorityComboBox" Margin="0,0,0,10">
+                    <ComboBoxItem Content="Обычная" Tag="Normal"/>
+                    <ComboBoxItem Content="Срочно" Tag="Urgent"/>
+                </ComboBox>
 
-        <ComboBox Grid.Row="5" x:Name="TeamComboBox" 
-                  DisplayMemberPath="Name"
-                  materialDesign:HintAssist.Hint="Команда (опционально)"
-                  Margin="0,0,0,12"/>
+                <ComboBox x:Name="TeamComboBox"
+                          DisplayMemberPath="Name"
+                          materialDesign:HintAssist.Hint="Команда (опционально)"
+                          Margin="0,0,0,10"/>
 
-        <ComboBox Grid.Row="6" x:Name="AssigneeComboBox"
-                  DisplayMemberPath="Username"
-                  materialDesign:HintAssist.Hint="Исполнитель (опционально)"
-                  Margin="0,0,0,12"/>
+                <ComboBox x:Name="AssigneeComboBox"
+                          DisplayMemberPath="Username"
+                          materialDesign:HintAssist.Hint="Исполнитель (только для владельца команды)"
+                          Margin="0,0,0,10"/>
 
-        <ComboBox Grid.Row="7" x:Name="StatusComboBox" 
-                  Margin="0,0,0,24">
-            <ComboBoxItem Content="Нужно сделать" Tag="Todo"/>
-            <ComboBoxItem Content="В работе" Tag="InProgress"/>
-            <ComboBoxItem Content="Готово" Tag="Done"/>
-        </ComboBox>
+                <ComboBox x:Name="StatusComboBox" Margin="0,0,0,0">
+                    <ComboBoxItem Content="Нужно сделать" Tag="Todo"/>
+                    <ComboBoxItem Content="В работе" Tag="InProgress"/>
+                    <ComboBoxItem Content="Готово" Tag="Done"/>
+                </ComboBox>
+            </StackPanel>
+        </ScrollViewer>
 
-        <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Отмена" 
-                    Click="CancelButton_Click"
-                    Margin="0,0,8,0"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
-            <Button Content="Сохранить" 
-                    Click="SaveButton_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"/>
-        </StackPanel>
+        <Border Grid.Row="2"
+                Background="{StaticResource VsCodeTitleBarBg}"
+                BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Отмена"
+                        Click="CancelButton_Click"
+                        Margin="0,0,8,0"
+                        Style="{StaticResource VsCodeSecondaryButton}"/>
+                <Button Content="Сохранить"
+                        Click="SaveButton_Click"
+                        Style="{StaticResource VsCodePrimaryButton}"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

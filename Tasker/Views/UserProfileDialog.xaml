@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid Margin="16">
+    <Grid Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -14,15 +14,18 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <materialDesign:PackIcon Kind="Account" Width="28" Height="28" Margin="0,0,8,0"/>
-            <TextBlock Text="Профиль участника" FontSize="20" FontWeight="Bold"/>
-        </StackPanel>
+        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="AccountOutline" Width="18" Height="18"
+                                         Foreground="{StaticResource VsCodeAccentBlue}"/>
+                <TextBlock Text="Профиль участника" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-        <Border Grid.Row="1" Background="{DynamicResource MaterialDesignPaper}" CornerRadius="10" Padding="12" Margin="0,12,0,12">
+        <Border Grid.Row="1" Style="{StaticResource AppPanelStyle}" Margin="12,12,12,0">
             <StackPanel>
-                <TextBlock x:Name="UsernameText" FontSize="16" FontWeight="Bold"/>
-                <TextBlock x:Name="EmailText" Opacity="0.8" Margin="0,4,0,0"/>
+                <TextBlock x:Name="UsernameText" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock x:Name="EmailText" Foreground="{StaticResource VsCodeForegroundMuted}" Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
 
@@ -32,7 +35,7 @@
                   CanUserAddRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  Margin="0,0,0,12">
+                  Margin="12,12,12,0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="2*"/>
                 <DataGridTextColumn Header="Команда" Binding="{Binding TeamName}" Width="*"/>
@@ -42,11 +45,15 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+        <Border Grid.Row="3"
+                Background="{StaticResource VsCodeTitleBarBg}"
+                BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                BorderThickness="0,1,0,0"
+                Padding="12,8">
             <Button Content="Закрыть"
                     Click="Close_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"/>
-        </StackPanel>
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource VsCodePrimaryButton}"/>
+        </Border>
     </Grid>
 </Window>
-

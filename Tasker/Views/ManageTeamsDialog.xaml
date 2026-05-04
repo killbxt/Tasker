@@ -2,86 +2,95 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="Управление командами" Height="600" Width="700"
+        Title="Организация и команды" Height="600" Width="700"
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid Margin="16" Background="{StaticResource AppBackgroundBrush}">
+    <Grid Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Управление командами и организацией" 
-                   FontSize="20" FontWeight="Bold"
-                   Margin="0,0,0,16"/>
+        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
+            <TextBlock Text="Организация и команды" FontWeight="SemiBold"/>
+        </Border>
 
-        <!-- Моя организация -->
-        <Border Grid.Row="1" Style="{StaticResource AppPanelStyle}" Margin="0,0,0,16">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="12,12">
             <StackPanel>
-                <TextBlock Text="Моя организация" FontWeight="Bold" Margin="0,0,0,8"/>
-                <TextBlock x:Name="OrganizationInfoText" FontSize="14"/>
-                <Button x:Name="CreateOrgButton" Content="Создать организацию" 
-                        Click="CreateOrganization_Click"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Margin="0,8,0,0"/>
-                <Button x:Name="ManageMembersButton" Content="Управление участниками" 
-                        Click="ManageMembers_Click"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        Margin="0,8,0,0"
-                        Visibility="Collapsed"/>
-            </StackPanel>
-        </Border>
+                <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Моя организация" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="OrganizationInfoText" Foreground="{StaticResource VsCodeForegroundMuted}"/>
+                        <Button x:Name="CreateOrgButton" Content="Создать организацию"
+                                Click="CreateOrganization_Click"
+                                Style="{StaticResource VsCodePrimaryButton}"
+                                HorizontalAlignment="Left"
+                                Margin="0,12,0,0"/>
+                        <Button x:Name="ManageMembersButton" Content="Участники"
+                                Click="ManageMembers_Click"
+                                Style="{StaticResource VsCodeSecondaryButton}"
+                                HorizontalAlignment="Left"
+                                Margin="0,8,0,0"
+                                Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
 
-        <!-- Создание команды -->
-        <Border Grid.Row="2" Style="{StaticResource AppPanelStyle}" Margin="0,0,0,16">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel>
-                    <TextBlock Text="Новая команда" FontWeight="Bold" Margin="0,0,0,8"/>
-                    <TextBox x:Name="TeamNameTextBox"
-                             materialDesign:HintAssist.Hint="Название"
-                             Margin="0,0,0,8"/>
-                    <TextBox x:Name="TeamDescTextBox"
-                             materialDesign:HintAssist.Hint="Описание (опционально)"
-                             Margin="0,0,0,8"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="12,0,0,0">
-                    <Button Content="Создать"
-                            Click="CreateTeam_Click"
-                            Width="120"
-                            Style="{StaticResource MaterialDesignRaisedButton}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- Мои команды -->
-        <TextBlock Grid.Row="3" Text="Мои команды" FontWeight="Bold" Margin="0,0,0,8"/>
-        <ListBox Grid.Row="3" x:Name="TeamsListBox" Margin="0,0,0,16">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Border Padding="12" Margin="4" Background="{StaticResource AppPanelBrush}" BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="10">
+                <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
-                            <TextBlock Text="{Binding Description}" FontSize="11" 
-                                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                            <TextBlock Text="Новая команда" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TeamNameTextBox"
+                                     materialDesign:HintAssist.Hint="Название"
+                                     Margin="0,0,0,8"/>
+                            <TextBox x:Name="TeamDescTextBox"
+                                     materialDesign:HintAssist.Hint="Описание (опционально)"/>
                         </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+                        <Button Grid.Column="1"
+                                Content="Создать"
+                                Click="CreateTeam_Click"
+                                VerticalAlignment="Bottom"
+                                Margin="12,0,0,0"
+                                MinWidth="100"
+                                Style="{StaticResource VsCodePrimaryButton}"/>
+                    </Grid>
+                </Border>
 
-        <Button Grid.Row="4" Content="Закрыть" 
-                Click="CloseButton_Click"
-                Style="{StaticResource MaterialDesignOutlinedButton}"
-                HorizontalAlignment="Right"/>
+                <TextBlock Text="Мои команды" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <ListBox x:Name="TeamsListBox">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10" Margin="0,0,0,6"
+                                    Background="{StaticResource VsCodePanelBg}"
+                                    BorderBrush="{StaticResource VsCodeBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="2">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Description}" FontSize="12"
+                                               Foreground="{StaticResource VsCodeForegroundMuted}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                Background="{StaticResource VsCodeTitleBarBg}"
+                BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <Button Content="Закрыть"
+                    Click="CloseButton_Click"
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource VsCodeSecondaryButton}"/>
+        </Border>
     </Grid>
 </Window>

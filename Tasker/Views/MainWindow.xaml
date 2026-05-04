@@ -3,197 +3,192 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:dd="urn:gong-wpf-dragdrop"
-        Title="Task Manager" Height="768" Width="1366"
+        Title="Tasker" Height="768" Width="1366"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MaterialDesignWindow}"
         AllowsTransparency="False">
 
     <Window.Resources>
-        <Style x:Key="ColumnStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Margin" Value="8"/>
-            <Setter Property="Padding" Value="0,0,0,16"/>
+        <Style x:Key="ColumnChrome" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource VsCodeSidebarBg}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Margin" Value="4,6"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <Style x:Key="ColumnHeaderHost" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource VsCodePanelBg}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="0"/>
         </Style>
 
         <DataTemplate x:Key="TaskTemplate">
-            <Border Background="{DynamicResource MaterialDesignCardBackground}"
-                    CornerRadius="8"
-                    Margin="8"
-                    Padding="12"
-                    BorderBrush="{Binding PriorityColor}"
-                    BorderThickness="0,0,0,3">
-                <StackPanel>
-                    <DockPanel>
-                        <TextBlock Text="{Binding Title}" 
-                                   FontWeight="Bold" FontSize="14"
+            <Border Background="{StaticResource VsCodePanelBg}"
+                    BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                    BorderThickness="1"
+                    CornerRadius="2"
+                    Margin="6,4"
+                    Padding="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="{Binding PriorityColor}" VerticalAlignment="Stretch"/>
+                    <StackPanel Grid.Column="1" Margin="10,8,10,8">
+                        <TextBlock Text="{Binding Title}"
+                                   FontWeight="SemiBold"
+                                   FontSize="13"
                                    TextWrapping="Wrap"/>
-                    </DockPanel>
 
-                    <TextBlock Text="{Binding Description}" 
-                               TextWrapping="Wrap"
-                               FontSize="11"
-                               Foreground="{DynamicResource MaterialDesignBodyLight}"
-                               Margin="0,8,0,8"
-                               MaxHeight="60"/>
+                        <TextBlock Text="{Binding Description}"
+                                   TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Foreground="{StaticResource VsCodeForegroundMuted}"
+                                   Margin="0,6,0,0"
+                                   MaxHeight="60"/>
 
-                    <Border Background="{DynamicResource MaterialDesignDivider}" 
-                            Height="1" Margin="0,8"/>
+                        <Border Background="{StaticResource VsCodeBorder}" Height="1" Margin="0,8"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <materialDesign:PackIcon Kind="CalendarClock" Width="14" Height="14"/>
-                        <TextBlock Text="{Binding PlannedWindowText}" 
-                                   FontSize="11" Margin="4,0,0,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <materialDesign:PackIcon Kind="CalendarClock" Width="14" Height="14"
+                                                     Foreground="{StaticResource VsCodeForegroundMuted}"/>
+                            <TextBlock Text="{Binding PlannedWindowText}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource VsCodeForegroundMuted}"
+                                       Margin="6,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Command="{Binding DataContext.EditTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource VsCodeIconButton}"
+                                    ToolTip="Изменить">
+                                <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16"/>
+                            </Button>
+                            <Button Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource VsCodeIconButton}"
+                                    ToolTip="Удалить">
+                                <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <Button Width="30" Height="30"
-                                Command="{Binding DataContext.EditTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"
-                                Style="{StaticResource MaterialDesignToolButton}">
-                            <materialDesign:PackIcon Kind="Pencil" Width="18" Height="18"/>
-                        </Button>
-                        <Button Width="30" Height="30"
-                                Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"
-                                Style="{StaticResource MaterialDesignToolButton}">
-                            <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
-                        </Button>
-                    </StackPanel>
-                </StackPanel>
+                </Grid>
             </Border>
         </DataTemplate>
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Верхняя панель - адаптивная -->
-        <Border Grid.Row="0" Background="{DynamicResource MaterialDesignPaper}">
-            <Grid Margin="12,8">
+        <!-- VS Code-style top bar -->
+        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Логотип -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="ViewDashboard" Width="28" Height="28" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    <TextBlock Text="Менеджер задач" FontSize="18" FontWeight="Bold" Margin="8,0,0,0"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="ViewDashboard" Width="18" Height="18"
+                                             Foreground="{StaticResource VsCodeAccentBlue}"/>
+                    <TextBlock Text="Tasker" FontWeight="SemiBold" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Центр - поиск и фильтры -->
-                <WrapPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <ComboBox ItemsSource="{Binding TeamFilters}"
                               SelectedItem="{Binding SelectedTeamFilter}"
                               DisplayMemberPath="Name"
-                              Width="160"
-                              materialDesign:HintAssist.Hint="Команда"
+                              Width="200"
+                              materialDesign:HintAssist.Hint="Область"
                               Margin="0,0,8,0"
                               VerticalAlignment="Center"/>
 
                     <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             materialDesign:HintAssist.Hint="Поиск..."
-                             Width="180"
+                             materialDesign:HintAssist.Hint="Поиск (Ctrl+F в будущем)"
+                             Width="260"
                              materialDesign:TextFieldAssist.HasClearButton="True"
                              VerticalAlignment="Center"/>
-                </WrapPanel>
+                </StackPanel>
 
-                <!-- Действия -->
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
-                    <Button Command="{Binding AddTaskCommand}"
-                            ToolTip="Новая задача"
-                            Width="36" Height="36"
-                            Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="Plus" Width="20" Height="20"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Command="{Binding AddTaskCommand}" ToolTip="Новая задача" Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="Plus" Width="18" Height="18"/>
                     </Button>
-
-                    <Button Command="{Binding OpenProfileCommand}"
-                            ToolTip="Профиль"
-                            Width="36" Height="36"
-                            Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="AccountCircle" Width="20" Height="20"/>
+                    <Button Command="{Binding OpenProfileCommand}" ToolTip="Профиль" Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="AccountOutline" Width="18" Height="18"/>
                     </Button>
-
-                    <Button Command="{Binding OpenAnalyticsCommand}"
-                            ToolTip="Аналитика"
-                            Width="36" Height="36"
-                            Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="ChartBar" Width="20" Height="20"/>
+                    <Button Command="{Binding OpenAnalyticsCommand}" ToolTip="Аналитика" Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="ChartBar" Width="18" Height="18"/>
                     </Button>
-
-                    <Button Command="{Binding ManageTeamsCommand}"
-                            ToolTip="Команды"
-                            Width="36" Height="36"
-                            Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="AccountGroup" Width="20" Height="20"/>
+                    <Button Command="{Binding ManageTeamsCommand}" ToolTip="Команды и организация" Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="AccountGroupOutline" Width="18" Height="18"/>
                     </Button>
-
-                    <Button Command="{Binding OpenAIChatCommand}"
-                            ToolTip="AI помощник"
-                            Width="36" Height="36"
-                            Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="Robot" Width="20" Height="20"/>
+                    <Button Command="{Binding OpenAIChatCommand}" ToolTip="AI помощник" Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="RobotOutline" Width="18" Height="18"/>
                     </Button>
-
-                    <Button Command="{Binding LogoutCommand}"
-                            ToolTip="Выйти"
-                            Width="36" Height="36"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="Logout" Width="20" Height="20"/>
+                    <Button Command="{Binding LogoutCommand}" ToolTip="Выйти" Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="Logout" Width="18" Height="18"/>
                     </Button>
-                </WrapPanel>
+                </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Канбан доска -->
-        <Grid Grid.Row="1" Margin="8">
+        <!-- Kanban -->
+        <Grid Grid.Row="1" Margin="0,4,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Колонка TODO -->
-            <!-- Колонка TODO -->
-            <Border x:Name="TodoColumn" Grid.Column="0" Style="{StaticResource ColumnStyle}">
+            <!-- TODO -->
+            <Border x:Name="TodoColumn" Grid.Column="0" Style="{StaticResource ColumnChrome}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="#FF5722" CornerRadius="12,12,0,0" Padding="12,8">
-                        <DockPanel>
-                            <TextBlock Text="Нужно сделать" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
-                            <Button Command="{Binding ClearTodoColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку">
-                                <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
-                            </Button>
-                            <TextBlock Text="{Binding TodoTasks.Count}" DockPanel.Dock="Right" Margin="8,0,8,0"/>
-                        </DockPanel>
+                    <Border Grid.Row="0" Style="{StaticResource ColumnHeaderHost}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{StaticResource VsCodeStripeTodo}"/>
+                            <DockPanel Grid.Column="1" Margin="10,8,6,8" LastChildFill="True">
+                                <TextBlock Text="{Binding TodoTasks.Count}" DockPanel.Dock="Right"
+                                           Foreground="{StaticResource VsCodeForegroundMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <Button Command="{Binding ClearTodoColumnCommand}" DockPanel.Dock="Right"
+                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку">
+                                    <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                                </Button>
+                                <TextBlock Text="Нужно сделать" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Grid>
                     </Border>
 
-                    <!-- Добавляем Border как контейнер для Drop зоны -->
-                    <Border Grid.Row="1" 
-                Background="Transparent"
-                AllowDrop="True"
-                dd:DragDrop.IsDropTarget="True"
-                dd:DragDrop.DropHandler="{Binding DropHandler}">
-                        <ScrollViewer>
+                    <Border Grid.Row="1"
+                            Background="Transparent"
+                            AllowDrop="True"
+                            dd:DragDrop.IsDropTarget="True"
+                            dd:DragDrop.DropHandler="{Binding DropHandler}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,4,0,0">
                             <ItemsControl x:Name="TodoItemsControl"
-                            ItemsSource="{Binding TodoTasks}"
-                            ItemTemplate="{StaticResource TaskTemplate}"
-                            dd:DragDrop.IsDragSource="True"
-                            dd:DragDrop.UseDefaultDragAdorner="True">
+                                          ItemsSource="{Binding TodoTasks}"
+                                          ItemTemplate="{StaticResource TaskTemplate}"
+                                          dd:DragDrop.IsDragSource="True"
+                                          dd:DragDrop.UseDefaultDragAdorner="True">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical"/>
@@ -205,35 +200,44 @@
                 </Grid>
             </Border>
 
-            <!-- Колонка IN PROGRESS -->
-            <Border x:Name="InProgressColumn" Grid.Column="1" Style="{StaticResource ColumnStyle}">
+            <!-- In progress -->
+            <Border x:Name="InProgressColumn" Grid.Column="1" Style="{StaticResource ColumnChrome}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="#2196F3" CornerRadius="12,12,0,0" Padding="12,8">
-                        <DockPanel>
-                            <TextBlock Text="В работе" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
-                            <Button Command="{Binding ClearInProgressColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку">
-                                <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
-                            </Button>
-                            <TextBlock Text="{Binding InProgressTasks.Count}" DockPanel.Dock="Right" Margin="8,0,8,0"/>
-                        </DockPanel>
+                    <Border Grid.Row="0" Style="{StaticResource ColumnHeaderHost}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{StaticResource VsCodeStripeProgress}"/>
+                            <DockPanel Grid.Column="1" Margin="10,8,6,8" LastChildFill="True">
+                                <TextBlock Text="{Binding InProgressTasks.Count}" DockPanel.Dock="Right"
+                                           Foreground="{StaticResource VsCodeForegroundMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <Button Command="{Binding ClearInProgressColumnCommand}" DockPanel.Dock="Right"
+                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку">
+                                    <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                                </Button>
+                                <TextBlock Text="В работе" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Grid>
                     </Border>
 
-                    <Border Grid.Row="1" 
-                Background="Transparent"
-                AllowDrop="True"
-                dd:DragDrop.IsDropTarget="True"
-                dd:DragDrop.DropHandler="{Binding DropHandler}">
-                        <ScrollViewer>
+                    <Border Grid.Row="1"
+                            Background="Transparent"
+                            AllowDrop="True"
+                            dd:DragDrop.IsDropTarget="True"
+                            dd:DragDrop.DropHandler="{Binding DropHandler}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,4,0,0">
                             <ItemsControl x:Name="InProgressItemsControl"
-                            ItemsSource="{Binding InProgressTasks}"
-                            ItemTemplate="{StaticResource TaskTemplate}"
-                            dd:DragDrop.IsDragSource="True"
-                            dd:DragDrop.UseDefaultDragAdorner="True">
+                                          ItemsSource="{Binding InProgressTasks}"
+                                          ItemTemplate="{StaticResource TaskTemplate}"
+                                          dd:DragDrop.IsDragSource="True"
+                                          dd:DragDrop.UseDefaultDragAdorner="True">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical"/>
@@ -245,35 +249,44 @@
                 </Grid>
             </Border>
 
-            <!-- Колонка DONE -->
-            <Border x:Name="DoneColumn" Grid.Column="2" Style="{StaticResource ColumnStyle}">
+            <!-- Done -->
+            <Border x:Name="DoneColumn" Grid.Column="2" Style="{StaticResource ColumnChrome}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="#4CAF50" CornerRadius="12,12,0,0" Padding="12,8">
-                        <DockPanel>
-                            <TextBlock Text="Готово" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
-                            <Button Command="{Binding ClearDoneColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку">
-                                <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
-                            </Button>
-                            <TextBlock Text="{Binding DoneTasks.Count}" DockPanel.Dock="Right" Margin="8,0,8,0"/>
-                        </DockPanel>
+                    <Border Grid.Row="0" Style="{StaticResource ColumnHeaderHost}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{StaticResource VsCodeStripeDone}"/>
+                            <DockPanel Grid.Column="1" Margin="10,8,6,8" LastChildFill="True">
+                                <TextBlock Text="{Binding DoneTasks.Count}" DockPanel.Dock="Right"
+                                           Foreground="{StaticResource VsCodeForegroundMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <Button Command="{Binding ClearDoneColumnCommand}" DockPanel.Dock="Right"
+                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку">
+                                    <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                                </Button>
+                                <TextBlock Text="Готово" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Grid>
                     </Border>
 
-                    <Border Grid.Row="1" 
-                Background="Transparent"
-                AllowDrop="True"
-                dd:DragDrop.IsDropTarget="True"
-                dd:DragDrop.DropHandler="{Binding DropHandler}">
-                        <ScrollViewer>
+                    <Border Grid.Row="1"
+                            Background="Transparent"
+                            AllowDrop="True"
+                            dd:DragDrop.IsDropTarget="True"
+                            dd:DragDrop.DropHandler="{Binding DropHandler}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,4,0,0">
                             <ItemsControl x:Name="DoneItemsControl"
-                            ItemsSource="{Binding DoneTasks}"
-                            ItemTemplate="{StaticResource TaskTemplate}"
-                            dd:DragDrop.IsDragSource="True"
-                            dd:DragDrop.UseDefaultDragAdorner="True">
+                                          ItemsSource="{Binding DoneTasks}"
+                                          ItemTemplate="{StaticResource TaskTemplate}"
+                                          dd:DragDrop.IsDragSource="True"
+                                          dd:DragDrop.UseDefaultDragAdorner="True">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical"/>
@@ -286,13 +299,24 @@
             </Border>
         </Grid>
 
-        <Button Content="Очистить всё"
-                Command="{Binding ClearAllColumnsCommand}"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Margin="1001,0,0,0"
-                Style="{StaticResource MaterialDesignOutlinedButton}"
-                Height="36"
-                ToolTip="Очистить все колонки"/>
+        <!-- Status / actions strip -->
+        <Border Grid.Row="2"
+                Background="{StaticResource VsCodeTitleBarBg}"
+                BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                BorderThickness="0,1,0,0"
+                Padding="8,6">
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left"
+                           Text="Перетаскивайте карточки между колонками для смены статуса."
+                           Foreground="{StaticResource VsCodeForegroundMuted}"
+                           VerticalAlignment="Center"
+                           FontSize="12"/>
+                <Button DockPanel.Dock="Right"
+                        Content="Очистить все колонки"
+                        Command="{Binding ClearAllColumnsCommand}"
+                        Style="{StaticResource VsCodeSecondaryButton}"
+                        ToolTip="Удалит задачи в текущей области (личные или команда)"/>
+            </DockPanel>
+        </Border>
     </Grid>
 </Window>

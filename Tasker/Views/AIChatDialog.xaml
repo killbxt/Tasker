@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid Margin="16">
+    <Grid Margin="0" Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -14,18 +14,17 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Background="{StaticResource AppPanelBrush}"
-                BorderBrush="{StaticResource AppBorderBrush}"
-                BorderThickness="1"
-                CornerRadius="10" Padding="12" Margin="0,0,0,16">
+                Style="{StaticResource VsCodeTitleBarBorder}"
+                Margin="0,0,0,12">
             <DockPanel>
                 <materialDesign:PackIcon Kind="Robot" Width="20" Height="20" Margin="0,0,8,0" DockPanel.Dock="Left"/>
                 <TextBlock Text="AI помощник" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>
 
-        <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer" 
-                      VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer"
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="12,0,12,0">
             <ItemsControl x:Name="MessagesListBox">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -34,15 +33,17 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="8,4" 
+                        <Border Margin="8,4"
                                 HorizontalAlignment="{Binding Alignment}"
                                 Background="{Binding BackgroundColor}"
-                                CornerRadius="12"
-                                Padding="12,8"
+                                BorderBrush="{StaticResource VsCodeBorder}"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                Padding="10,8"
                                 MaxWidth="400">
-                            <TextBlock Text="{Binding Text}" 
+                            <TextBlock Text="{Binding Text}"
                                        TextWrapping="Wrap"
-                                       Foreground="White"
+                                       Foreground="{Binding ForegroundColor}"
                                        FontSize="13"/>
                         </Border>
                     </DataTemplate>
@@ -50,7 +51,7 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <Grid Grid.Row="2" Margin="0,16,0,0">
+        <Grid Grid.Row="2" Margin="12,12,12,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -60,12 +61,12 @@
                      materialDesign:HintAssist.Hint="Напишите сообщение..."
                      KeyDown="MessageTextBox_KeyDown"/>
 
-            <Button Grid.Column="1" 
+            <Button Grid.Column="1"
                     Content="Отправить"
                     Click="SendButton_Click"
                     Margin="8,0,0,0"
-                    Width="100"
-                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+                    MinWidth="96"
+                    Style="{StaticResource VsCodePrimaryButton}"/>
         </Grid>
     </Grid>
 </Window>

@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid Margin="16">
+    <Grid Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -14,12 +14,15 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <materialDesign:PackIcon Kind="AccountCircle" Width="28" Height="28" Margin="0,0,8,0"/>
-            <TextBlock Text="Профиль" FontSize="20" FontWeight="Bold"/>
-        </StackPanel>
+        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="AccountOutline" Width="18" Height="18"
+                                         Foreground="{StaticResource VsCodeAccentBlue}"/>
+                <TextBlock Text="Профиль" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-        <Border Grid.Row="1" Background="{DynamicResource MaterialDesignPaper}" CornerRadius="10" Padding="12" Margin="0,12,0,12">
+        <Border Grid.Row="1" Style="{StaticResource AppPanelStyle}" Margin="12,12,12,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -27,24 +30,22 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
-                    <TextBlock x:Name="UsernameText" FontSize="16" FontWeight="Bold"/>
-                    <TextBlock x:Name="EmailText" Opacity="0.8" Margin="0,4,0,0"/>
-                    <TextBlock x:Name="OrgText" Opacity="0.8" Margin="0,4,0,0"/>
+                    <TextBlock x:Name="UsernameText" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="EmailText" Foreground="{StaticResource VsCodeForegroundMuted}" Margin="0,4,0,0"/>
+                    <TextBlock x:Name="OrgText" Foreground="{StaticResource VsCodeForegroundMuted}" Margin="0,2,0,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button ToolTip="Новая личная задача"
                             Click="AddTask_Click"
-                            Width="36" Height="36"
-                            Margin="0,0,8,0"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="Plus" Width="20" Height="20"/>
+                            Style="{StaticResource VsCodeIconButton}"
+                            Margin="0,0,4,0">
+                        <materialDesign:PackIcon Kind="Plus" Width="18" Height="18"/>
                     </Button>
                     <Button ToolTip="Обновить"
                             Click="Refresh_Click"
-                            Width="36" Height="36"
-                            Style="{StaticResource MaterialDesignToolButton}">
-                        <materialDesign:PackIcon Kind="Refresh" Width="20" Height="20"/>
+                            Style="{StaticResource VsCodeIconButton}">
+                        <materialDesign:PackIcon Kind="Refresh" Width="18" Height="18"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -56,7 +57,7 @@
                   CanUserAddRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  Margin="0,0,0,12">
+                  Margin="12,12,12,0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="2*"/>
                 <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="*"/>
@@ -65,19 +66,24 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Редактировать"
-                    Click="EditTask_Click"
-                    Margin="0,0,8,0"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
-            <Button Content="Удалить"
-                    Click="DeleteTask_Click"
-                    Margin="0,0,8,0"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
-            <Button Content="Закрыть"
-                    Click="Close_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"/>
-        </StackPanel>
+        <Border Grid.Row="3"
+                Background="{StaticResource VsCodeTitleBarBg}"
+                BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Редактировать"
+                        Click="EditTask_Click"
+                        Margin="0,0,8,0"
+                        Style="{StaticResource VsCodeSecondaryButton}"/>
+                <Button Content="Удалить"
+                        Click="DeleteTask_Click"
+                        Margin="0,0,8,0"
+                        Style="{StaticResource VsCodeSecondaryButton}"/>
+                <Button Content="Закрыть"
+                        Click="Close_Click"
+                        Style="{StaticResource VsCodePrimaryButton}"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
-
