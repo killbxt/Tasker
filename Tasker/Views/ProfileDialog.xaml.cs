@@ -79,7 +79,6 @@ namespace TaskManager.Views
             }
         }
 
-        /// <summary>Профиль показывает только личные задачи; в диалоге — только личная область.</summary>
         private static ObservableCollection<TeamFilterItem> PersonalWorkspaceOnly()
         {
             return new ObservableCollection<TeamFilterItem>

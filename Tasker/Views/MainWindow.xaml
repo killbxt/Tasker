@@ -104,7 +104,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Custom title / toolbar (replaces системная шапка Windows) -->
         <Border Grid.Row="0"
                 Background="{StaticResource VsCodeTitleBarBg}"
                 BorderBrush="{StaticResource VsCodeBorderSubtle}"
@@ -118,7 +117,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Название + область + участники команды -->
                 <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Tasker" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
@@ -141,7 +139,6 @@
                                Visibility="{Binding HasTeamRoster, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
 
-                <!-- Высоту не фиксируем: у MaterialDesign Outlined иначе обрезается Hint -->
                 <TextBox Grid.Column="1"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          materialDesign:HintAssist.Hint="Поиск"
@@ -211,7 +208,6 @@
             </Grid>
         </Border>
 
-        <!-- Kanban -->
         <Grid Grid.Row="1" Margin="0,4,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -219,7 +215,6 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- TODO -->
             <Border x:Name="TodoColumn" Grid.Column="0" Style="{StaticResource ColumnChrome}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -269,7 +264,6 @@
                 </Grid>
             </Border>
 
-            <!-- In progress -->
             <Border x:Name="InProgressColumn" Grid.Column="1" Style="{StaticResource ColumnChrome}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -319,7 +313,6 @@
                 </Grid>
             </Border>
 
-            <!-- Done -->
             <Border x:Name="DoneColumn" Grid.Column="2" Style="{StaticResource ColumnChrome}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -370,7 +363,6 @@
             </Border>
         </Grid>
 
-        <!-- Status / actions strip -->
         <Border Grid.Row="2"
                 Background="{StaticResource VsCodeTitleBarBg}"
                 BorderBrush="{StaticResource VsCodeBorderSubtle}"

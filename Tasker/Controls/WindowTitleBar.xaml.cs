@@ -71,7 +71,6 @@ namespace TaskManager.Controls
             }
             catch
             {
-                // ignore
             }
         }
 

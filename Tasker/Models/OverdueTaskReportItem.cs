@@ -1,6 +1,5 @@
 namespace TaskManager.Models
 {
-    /// <summary>Строка отчёта о просрочке для владельца команды.</summary>
     public class OverdueTaskReportItem
     {
         public string OrganizationName { get; set; } = "";

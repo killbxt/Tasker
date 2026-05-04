@@ -76,7 +76,6 @@ namespace TaskManager.Views
                 return;
             }
 
-            // No confirmations/tokens: add user immediately.
             user.OrganizationId = _currentOrganization.Id;
 
             string teamMessage = "";

@@ -64,7 +64,6 @@ namespace TaskManager.Services
             _currentUser = null;
         }
 
-        /// <summary>Перечитать текущего пользователя из БД (например после смены организации).</summary>
         public void RefreshCurrentUser()
         {
             if (_currentUser == null)

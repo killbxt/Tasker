@@ -15,7 +15,6 @@ namespace TaskManager.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        /// <summary>Владелец организации: команды, участники и привилегированные действия только у него.</summary>
         public int OwnerId { get; set; }
         public virtual User Owner { get; set; } = null!;
 

@@ -43,7 +43,8 @@ namespace TaskManager.Services
 {{
   ""action"": ""create_task|update_task|delete_task|update_organization|delete_organization|create_team|update_team|delete_team|none"",
   ""taskId"": null или число,
-  ""teamId"": null или число (id команды из контекста),
+  ""teamId"": null или число (id команды из списка teams в контексте),
+  ""personalTask"": false (если true — личная задача без команды, игнорируй выбранную в интерфейсе команду),
   ""taskData"": {{
     ""title"": ""..."",
     ""description"": ""..."",
@@ -68,6 +69,10 @@ namespace TaskManager.Services
 - delete_organization: только если пользователь явно просит удалить организацию/компанию целиком; teamId и taskId должны быть null. Очень разрушительное действие — в message предупреди.
 - create_team: нужна организация в контексте; teamData.name обязателен.
 - update_team / delete_team: укажи teamId из списка команд; удалять и переименовывать может только владелец (ownerId в контексте должен совпадать с userId).
+- create_task и команда: в контексте есть selectedWorkspace (kind: ""personal"" или ""team"", teamId, teamName).
+  • Явная личная задача («в личные», «без команды», «личная задача») — ""personalTask"": true, ""teamId"": null.
+  • Команда не названа и это не личная задача — поставь ""teamId"" равным selectedWorkspace.teamId (на экране личных задач это null).
+  • Пользователь называет команду («в команде Маркетинг», «для команды X») — сопоставь имя с массивом teams (без учёта регистра), укажи числовой Id в ""teamId""; при неоднозначности или отсутствии — action ""none"" и уточни в message.
 - Если сомневаешься или не хватает данных — action = ""none"" и в message спроси или объясни.
 - plannedEndAt обязателен для create_task; если не сказано — придумай разумный срок через несколько дней.";
 

@@ -25,8 +25,6 @@ namespace TaskManager.Views
 
         private void LoadData()
         {
-            // Сброс трекинга: иначе после создания организации в другом DbContext
-            // пользователь остаётся в памяти с OrganizationId = null и проверки «вступите в организацию» ломаются.
             _context.ChangeTracker.Clear();
             LoadOrganization();
             LoadUserTeams();

@@ -13,7 +13,6 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- VS Code Dark+ palette (approx.) -->
             <SolidColorBrush x:Key="VsCodeEditorBg" Color="#FF1E1E1E"/>
             <SolidColorBrush x:Key="VsCodeSidebarBg" Color="#FF252526"/>
             <SolidColorBrush x:Key="VsCodeTitleBarBg" Color="#FF323233"/>
@@ -31,12 +30,10 @@
             <SolidColorBrush x:Key="VsCodeStripeProgress" Color="#FF3794FF"/>
             <SolidColorBrush x:Key="VsCodeStripeDone" Color="#FF89D185"/>
 
-            <!-- Aliases used across app -->
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FF1E1E1E"/>
             <SolidColorBrush x:Key="AppPanelBrush" Color="#FF252526"/>
             <SolidColorBrush x:Key="AppBorderBrush" Color="#FF3C3C3C"/>
 
-            <!-- Override MaterialDesign to match VS Code surfaces -->
             <SolidColorBrush x:Key="MaterialDesignPaper" Color="#FF252526"/>
             <SolidColorBrush x:Key="MaterialDesignCardBackground" Color="#FF2D2D2D"/>
             <SolidColorBrush x:Key="MaterialDesignToolBarBackground" Color="#FF323233"/>
@@ -47,7 +44,6 @@
             <SolidColorBrush x:Key="MaterialDesignTextFieldBoxBackground" Color="#FF3C3C3C"/>
             <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#FF3794FF"/>
 
-            <!-- ~0.5rem (8px) — отступы диалогов и панелей -->
             <Thickness x:Key="AppPadHalfRem">8,8,8,8</Thickness>
 
             <Style x:Key="TaskerChromeWindow" TargetType="Window">
@@ -80,7 +76,6 @@
                 <Setter Property="Foreground" Value="{StaticResource VsCodeForeground}"/>
             </Style>
 
-            <!-- Flat toolbar / icon buttons (VS Code-like) -->
             <Style x:Key="VsCodeIconButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
                 <Setter Property="Width" Value="28"/>
                 <Setter Property="Height" Value="28"/>
@@ -90,7 +85,6 @@
                 <Setter Property="BorderThickness" Value="0"/>
             </Style>
 
-            <!-- Primary action: VS Code blue button -->
             <Style x:Key="VsCodePrimaryButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                 <Setter Property="Background" Value="{StaticResource VsCodeButtonBg}"/>
                 <Setter Property="Foreground" Value="White"/>
@@ -107,7 +101,6 @@
                 <Setter Property="FontSize" Value="13"/>
             </Style>
 
-            <!-- Default buttons: closer to VS Code -->
             <Style TargetType="Button" BasedOn="{StaticResource VsCodePrimaryButton}"/>
 
             <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
@@ -130,7 +123,6 @@
                 <Setter Property="BorderThickness" Value="0"/>
             </Style>
 
-            <!-- Карточки в списках на всю ширину -->
             <Style x:Key="StretchListBox" TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
@@ -175,7 +167,6 @@
                 <Setter Property="BorderThickness" Value="1"/>
             </Style>
 
-            <!-- Panel card: minimal radius like VS Code settings sections -->
             <Style x:Key="AppPanelStyle" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource VsCodeSidebarBg}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
@@ -184,7 +175,6 @@
                 <Setter Property="Padding" Value="16,14,16,16"/>
             </Style>
 
-            <!-- Title strip (внутренние секции, не системная шапка) -->
             <Style x:Key="VsCodeTitleBarBorder" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource VsCodeTitleBarBg}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorderSubtle}"/>

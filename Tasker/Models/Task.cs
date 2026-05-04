@@ -30,14 +30,8 @@ namespace TaskManager.Models
 
         public TaskPriority Priority { get; set; } = TaskPriority.Normal;
 
-        /// <summary>
-        /// Planned execution window start (local time).
-        /// </summary>
         public DateTime? PlannedStartAt { get; set; }
 
-        /// <summary>
-        /// Planned execution window end (local time).
-        /// </summary>
         public DateTime PlannedEndAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

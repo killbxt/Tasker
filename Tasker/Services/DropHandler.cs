@@ -51,9 +51,6 @@ namespace TaskManager.Services
             _viewModel.MoveTask(sourceItem, targetStatus.Value);
         }
 
-        /// <summary>
-        /// Gong сообщает реальную коллекцию-назначение — это надёжнее обхода VisualTree (иначе статус мог сохраняться неверно).
-        /// </summary>
         private TaskState? ResolveTargetStatus(IDropInfo dropInfo)
         {
             if (dropInfo.TargetCollection == _viewModel.TodoTasks)

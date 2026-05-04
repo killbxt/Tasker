@@ -68,7 +68,6 @@ namespace TaskManager.ViewModels
 
         private string _teamRosterText = "";
 
-        /// <summary>Список участников выбранной команды (имена через запятую).</summary>
         public string TeamRosterText => _teamRosterText;
 
         public bool HasTeamRoster => !string.IsNullOrEmpty(_teamRosterText);
@@ -76,13 +75,8 @@ namespace TaskManager.ViewModels
         private bool _canModifyTasks = true;
         private bool _canUsePowerFeatures = true;
 
-        /// <summary>
-        /// Личные задачи — всегда можно править залогиненному; командная доска — только владельцу организации или капитану команды.
-        /// Участник на доске команды может только перетаскивать свои карточки.
-        /// </summary>
         public bool CanModifyTasks => _canModifyTasks;
 
-        /// <summary>AI, аналитика, отчёт просрочек. У приглашённого в чужой организации — false.</summary>
         public bool CanUsePowerFeatures
         {
             get => _canUsePowerFeatures;
@@ -93,7 +87,6 @@ namespace TaskManager.ViewModels
             }
         }
 
-        /// <summary>Подсказка на командной доске для участника: только перетаскивание карточек.</summary>
         public bool ShowParticipantBoardHint => !CanModifyTasks && SelectedTeamFilter?.Team != null;
 
         public MainViewModel(AuthService authService)
@@ -282,7 +275,6 @@ namespace TaskManager.ViewModels
                 }
                 else
                 {
-                    // Personal scope: only tasks not tied to a team.
                     query = query.Where(t => t.TeamId == null && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
                 }
             }

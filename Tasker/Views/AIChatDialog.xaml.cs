@@ -33,7 +33,8 @@ namespace TaskManager.Views
                        "Задачи: создать, изменить, удалить по описанию.\n" +
                        "Организация: «переименуй организацию в …», «удали организацию».\n" +
                        "Команды: «создай команду …», «переименуй команду 2 в …», «удали команду …».\n\n" +
-                       "Примеры: «Создай задачу отчёт до пятницы 18:00», «Удали задачу номер 3».",
+                       "Задачи создаются в текущей выбранной области (команда вверху) или в названной команде.\n\n" +
+                       "Примеры: «Создай задачу отчёт до пятницы 18:00», «Добавь в команде Маркетинг задачу рассылка», «Удали задачу номер 3».",
                 IsUser = false
             });
         }
@@ -73,9 +74,15 @@ namespace TaskManager.Views
                 .Select(t => new { t.Id, t.Name, t.Description, t.OrganizationId, t.OwnerId })
                 .ToList();
 
+            var sel = _viewModel.SelectedTeamFilter?.Team;
+            object selectedWorkspace = sel == null
+                ? new { kind = "personal", teamId = (int?)null, teamName = (string?)null }
+                : new { kind = "team", teamId = (int?)sel.Id, teamName = (string?)sel.Name };
+
             var payload = new
             {
                 userId,
+                selectedWorkspace,
                 organization = org == null ? null : new { org.Id, org.Name, org.Description },
                 teams
             };
@@ -236,6 +243,35 @@ namespace TaskManager.Views
                         Status = TaskState.Todo,
                         CreatedAt = DateTime.Now
                     };
+
+                    int? resolvedTeamId = ai.personalTask == true
+                        ? null
+                        : ai.teamId ?? _viewModel.SelectedTeamFilter?.Team?.Id;
+                    if (resolvedTeamId.HasValue)
+                    {
+                        var allowed = db.Teams.AsNoTracking()
+                            .Where(t => t.Id == resolvedTeamId.Value)
+                            .Any(t => t.Members.Any(m => m.Id == uid));
+                        if (!allowed)
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                _messages.Add(new ChatMessage
+                                {
+                                    Text = "Нельзя создать задачу в этой команде: вы не состоите в ней или команда не найдена.",
+                                    IsUser = false
+                                });
+                            });
+                            return true;
+                        }
+
+                        newTask.TeamId = resolvedTeamId.Value;
+                    }
+                    else
+                    {
+                        newTask.TeamId = null;
+                    }
+
                     _viewModel.AddTask(newTask);
                     Application.Current.Dispatcher.Invoke(() =>
                     {
@@ -567,6 +603,7 @@ namespace TaskManager.Views
         public string action { get; set; } = "none";
         public int? taskId { get; set; }
         public int? teamId { get; set; }
+        public bool? personalTask { get; set; }
         public TaskData? taskData { get; set; }
         public OrgAiData? organizationData { get; set; }
         public TeamAiData? teamData { get; set; }

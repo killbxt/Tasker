@@ -193,7 +193,6 @@ namespace TaskManager.Services
             return true;
         }
 
-        /// <summary>Покинуть команду: капитаном становится владелец организации.</summary>
         public static bool TryLeaveTeam(ApplicationDbContext db, int userId, int teamId, out string error)
         {
             error = "";
@@ -231,7 +230,6 @@ namespace TaskManager.Services
             return true;
         }
 
-        /// <summary>Покинуть организацию (только не владелец). Убирает из всех команд этой организации.</summary>
         public static bool TryLeaveOrganizationAsMember(ApplicationDbContext db, int userId, int orgId, out string error)
         {
             error = "";
