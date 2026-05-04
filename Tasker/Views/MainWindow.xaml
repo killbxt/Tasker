@@ -118,18 +118,27 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Название + область слева; поиск отдельно по центру средней колонки -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Tasker" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding TeamFilters}"
-                              SelectedItem="{Binding SelectedTeamFilter}"
-                              DisplayMemberPath="Name"
-                              Width="180"
-                              materialDesign:HintAssist.Hint="Область"
-                              materialDesign:HintAssist.IsFloating="True"
-                              Margin="10,0,0,0"
-                              VerticalAlignment="Center"
-                              shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                <!-- Название + область + участники команды -->
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Tasker" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding TeamFilters}"
+                                  SelectedItem="{Binding SelectedTeamFilter}"
+                                  DisplayMemberPath="Name"
+                                  Width="180"
+                                  materialDesign:HintAssist.Hint="Область"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  Margin="10,0,0,0"
+                                  VerticalAlignment="Center"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding TeamRosterText}"
+                               FontSize="11"
+                               Foreground="{StaticResource VsCodeForegroundMuted}"
+                               TextWrapping="Wrap"
+                               MaxWidth="420"
+                               Margin="0,4,0,0"
+                               Visibility="{Binding HasTeamRoster, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
 
                 <!-- Высоту не фиксируем: у MaterialDesign Outlined иначе обрезается Hint -->
@@ -146,6 +155,10 @@
                          shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Command="{Binding RefreshBoardCommand}" ToolTip="Обновить доску и команды"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16"/>
+                    </Button>
                     <Button Command="{Binding AddTaskCommand}" ToolTip="Новая задача"
                             Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}">
@@ -369,9 +382,9 @@
                            Foreground="{StaticResource VsCodeForegroundMuted}"
                            VerticalAlignment="Center"
                            FontSize="12"
-                           Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}"/>
+                           Margin="0,0,16,0"/>
                 <TextBlock DockPanel.Dock="Left"
-                           Text="Вы участник организации: статус задач меняется только перетаскиванием. Создание и правка карточек недоступны."
+                           Text="Как участнику: создание и правка карточек недоступны на командной доске — только перетаскивание своих задач. Доска подтягивается с сервера по кнопке «Обновить» и автоматически каждые 25 с."
                            Foreground="{StaticResource VsCodeForegroundMuted}"
                            VerticalAlignment="Center"
                            FontSize="12"

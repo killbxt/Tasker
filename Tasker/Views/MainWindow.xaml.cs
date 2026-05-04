@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using MaterialDesignThemes.Wpf;
 using TaskManager.Data;
 using TaskManager.Models;
@@ -12,12 +13,14 @@ namespace TaskManager.Views
     {
         private readonly MainViewModel _viewModel;
         private readonly AuthService _authService;
-        // Invitations by token were removed; no background polling needed.
+        private DispatcherTimer? _boardAutoRefreshTimer;
 
         public MainWindow(AuthService authService)
         {
             InitializeComponent();
             StateChanged += (_, _) => UpdateMaximizeGlyph();
+            Loaded += MainWindow_Loaded;
+            Unloaded += MainWindow_Unloaded;
             _authService = authService;
             _viewModel = new MainViewModel(authService);
             DataContext = _viewModel;
@@ -36,7 +39,30 @@ namespace TaskManager.Views
             _viewModel.LogoutCommand = new RelayCommand(Logout);
 
             _viewModel.ManageTeamsCommand = new RelayCommand(ManageTeams);
+            _viewModel.RefreshBoardCommand = new RelayCommand(() => _viewModel.LoadTeams());
             UpdateMaximizeGlyph();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            _boardAutoRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25) };
+            _boardAutoRefreshTimer.Tick += (_, _) =>
+            {
+                if (IsActive)
+                {
+                    _viewModel.LoadTasks();
+                }
+            };
+            _boardAutoRefreshTimer.Start();
+        }
+
+        private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_boardAutoRefreshTimer != null)
+            {
+                _boardAutoRefreshTimer.Stop();
+                _boardAutoRefreshTimer = null;
+            }
         }
 
         private void UpdateMaximizeGlyph()

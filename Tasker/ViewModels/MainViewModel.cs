@@ -43,6 +43,7 @@ namespace TaskManager.ViewModels
             {
                 _selectedTeamFilter = value;
                 OnPropertyChanged();
+                RefreshTeamRosterText();
                 if (!_suppressSelectedTeamFilterChanged)
                 {
                     LoadTasks();
@@ -63,6 +64,14 @@ namespace TaskManager.ViewModels
         public ICommand OpenOverdueReportCommand { get; set; }
         public ICommand LogoutCommand { get; set; }
         public ICommand ManageTeamsCommand { get; set; }
+        public ICommand RefreshBoardCommand { get; set; }
+
+        private string _teamRosterText = "";
+
+        /// <summary>Список участников выбранной команды (имена через запятую).</summary>
+        public string TeamRosterText => _teamRosterText;
+
+        public bool HasTeamRoster => !string.IsNullOrEmpty(_teamRosterText);
 
         private bool _canModifyTasks = true;
         private bool _canUsePowerFeatures = true;
@@ -105,6 +114,7 @@ namespace TaskManager.ViewModels
             OpenOverdueReportCommand = new RelayCommand(() => { });
             LogoutCommand = new RelayCommand(() => { });
             ManageTeamsCommand = new RelayCommand(ManageTeams);
+            RefreshBoardCommand = new RelayCommand(() => { });
             DropHandler = new DropHandler(this);
             LoadTeams();
         }
@@ -161,12 +171,44 @@ namespace TaskManager.ViewModels
             LoadTeams();
         }
 
+        private void SetTeamRosterText(string text)
+        {
+            if (_teamRosterText == text)
+            {
+                return;
+            }
+
+            _teamRosterText = text;
+            OnPropertyChanged(nameof(TeamRosterText));
+            OnPropertyChanged(nameof(HasTeamRoster));
+        }
+
+        private void RefreshTeamRosterText()
+        {
+            if (_authService.CurrentUser == null)
+            {
+                SetTeamRosterText("");
+                return;
+            }
+
+            var team = SelectedTeamFilter?.Team;
+            if (team?.Members == null || team.Members.Count == 0)
+            {
+                SetTeamRosterText("");
+                return;
+            }
+
+            var names = string.Join(", ", team.Members.OrderBy(m => m.Username).Select(m => m.Username));
+            SetTeamRosterText($"Участники: {names}");
+        }
+
         public void LoadTeams()
         {
             RefreshWorkspacePermissions();
 
             if (_authService.CurrentUser == null)
             {
+                SetTeamRosterText("");
                 return;
             }
 
@@ -199,6 +241,7 @@ namespace TaskManager.ViewModels
                 _suppressSelectedTeamFilterChanged = false;
             }
 
+            RefreshTeamRosterText();
             LoadTasks();
         }
 
@@ -208,7 +251,10 @@ namespace TaskManager.ViewModels
             InProgressTasks.Clear();
             DoneTasks.Clear();
 
+            _context.ChangeTracker.Clear();
+
             var query = _context.Tasks
+                .AsNoTracking()
                 .Include(t => t.AssignedTo)
                 .Include(t => t.CreatedBy)
                 .Include(t => t.Team)
@@ -281,23 +327,47 @@ namespace TaskManager.ViewModels
 
         public void UpdateTask(TaskViewModel taskVm)
         {
-            taskVm.Task.UpdatedAt = DateTime.Now;
-            if (taskVm.Task.Status == TaskState.Done)
+            var s = taskVm.Task;
+            s.UpdatedAt = DateTime.Now;
+            if (s.Status == TaskState.Done)
             {
-                taskVm.Task.CompletedAt ??= DateTime.Now;
+                s.CompletedAt ??= DateTime.Now;
             }
             else
             {
-                taskVm.Task.CompletedAt = null;
+                s.CompletedAt = null;
             }
-            _context.Entry(taskVm.Task).State = EntityState.Modified;
+
+            var entity = _context.Tasks.Find(s.Id);
+            if (entity == null)
+            {
+                LoadTasks();
+                return;
+            }
+
+            entity.Title = s.Title;
+            entity.Description = s.Description;
+            entity.Status = s.Status;
+            entity.Priority = s.Priority;
+            entity.PlannedStartAt = s.PlannedStartAt;
+            entity.PlannedEndAt = s.PlannedEndAt;
+            entity.TeamId = s.TeamId;
+            entity.AssignedToId = s.AssignedToId;
+            entity.UpdatedAt = s.UpdatedAt;
+            entity.CompletedAt = s.CompletedAt;
+
             _context.SaveChanges();
             LoadTasks();
         }
 
         public void DeleteTask(TaskViewModel taskVm)
         {
-            _context.Tasks.Remove(taskVm.Task);
+            var entity = _context.Tasks.Find(taskVm.Task.Id);
+            if (entity != null)
+            {
+                _context.Tasks.Remove(entity);
+            }
+
             _context.SaveChanges();
             LoadTasks();
         }

@@ -24,17 +24,15 @@ namespace TaskManager.Services
                 return;
             }
 
-            TaskState targetStatus = GetTargetStatus(dropInfo);
-
-            if (sourceItem.Status != targetStatus)
-            {
-                dropInfo.Effects = DragDropEffects.Move;
-                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-            }
-            else
+            var targetStatus = ResolveTargetStatus(dropInfo);
+            if (targetStatus == null || sourceItem.Status == targetStatus.Value)
             {
                 dropInfo.Effects = DragDropEffects.None;
+                return;
             }
+
+            dropInfo.Effects = DragDropEffects.Move;
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
         }
 
         public void Drop(IDropInfo dropInfo)
@@ -44,55 +42,64 @@ namespace TaskManager.Services
                 return;
             }
 
-            TaskState targetStatus = GetTargetStatus(dropInfo);
-
-            if (sourceItem.Status != targetStatus)
+            var targetStatus = ResolveTargetStatus(dropInfo);
+            if (targetStatus == null || sourceItem.Status == targetStatus.Value)
             {
-                _viewModel.MoveTask(sourceItem, targetStatus);
+                return;
             }
+
+            _viewModel.MoveTask(sourceItem, targetStatus.Value);
         }
 
-        private TaskState GetTargetStatus(IDropInfo dropInfo)
+        /// <summary>
+        /// Gong сообщает реальную коллекцию-назначение — это надёжнее обхода VisualTree (иначе статус мог сохраняться неверно).
+        /// </summary>
+        private TaskState? ResolveTargetStatus(IDropInfo dropInfo)
         {
-            System.Diagnostics.Debug.WriteLine($"VisualTarget Type: {dropInfo.VisualTarget?.GetType()}");
-            System.Diagnostics.Debug.WriteLine($"VisualTarget Name: {(dropInfo.VisualTarget as FrameworkElement)?.Name}");
+            if (dropInfo.TargetCollection == _viewModel.TodoTasks)
+            {
+                return TaskState.Todo;
+            }
 
+            if (dropInfo.TargetCollection == _viewModel.InProgressTasks)
+            {
+                return TaskState.InProgress;
+            }
+
+            if (dropInfo.TargetCollection == _viewModel.DoneTasks)
+            {
+                return TaskState.Done;
+            }
+
+            return ResolveTargetStatusFromVisualTree(dropInfo);
+        }
+
+        private static TaskState? ResolveTargetStatusFromVisualTree(IDropInfo dropInfo)
+        {
             var target = dropInfo.VisualTarget as DependencyObject;
 
             while (target != null)
             {
-                System.Diagnostics.Debug.WriteLine($"Parent Type: {target.GetType()}, Name: {(target as FrameworkElement)?.Name}");
-
-                if (target is Border border)
+                if (target is FrameworkElement fe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Found Border: {border.Name}");
-                    switch (border.Name)
+                    switch (fe.Name)
                     {
                         case "TodoColumn":
+                        case "TodoItemsControl":
                             return TaskState.Todo;
                         case "InProgressColumn":
+                        case "InProgressItemsControl":
                             return TaskState.InProgress;
                         case "DoneColumn":
+                        case "DoneItemsControl":
                             return TaskState.Done;
                     }
                 }
+
                 target = VisualTreeHelper.GetParent(target);
             }
 
-            if (dropInfo.VisualTarget is ItemsControl itemsControl)
-            {
-                switch (itemsControl.Name)
-                {
-                    case "TodoItemsControl":
-                        return TaskState.Todo;
-                    case "InProgressItemsControl":
-                        return TaskState.InProgress;
-                    case "DoneItemsControl":
-                        return TaskState.Done;
-                }
-            }
-
-            return TaskState.Todo;
+            return null;
         }
     }
 }
