@@ -2,11 +2,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:controls="clr-namespace:TaskManager.Controls"
         Title="Участники" Height="520" Width="620"
         WindowStartupLocation="CenterOwner"
-        Style="{StaticResource MaterialDesignWindow}">
+        Style="{StaticResource TaskerChromeWindow}">
 
-    <Grid Background="{StaticResource VsCodeEditorBg}">
+    <Grid Margin="{StaticResource AppPadHalfRem}" Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -14,28 +15,27 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
-            <TextBlock Text="Участники организации" FontWeight="SemiBold"/>
-        </Border>
+        <controls:WindowTitleBar Grid.Row="0" TitleText="Участники организации"/>
 
-        <Border Grid.Row="1" Style="{StaticResource AppPanelStyle}" Margin="12,12,12,0">
+        <Border Grid.Row="1" Style="{StaticResource AppPanelStyle}" Margin="0,8,0,10">
             <StackPanel>
-                <TextBlock Text="Добавить по email" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBox x:Name="EmailTextBox" materialDesign:HintAssist.Hint="Email" Margin="0,0,0,8"/>
+                <TextBlock Text="Добавить по email" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                <TextBox x:Name="EmailTextBox" materialDesign:HintAssist.Hint="Email" Margin="0,0,0,10"/>
                 <ComboBox x:Name="TeamComboBox" DisplayMemberPath="Name"
-                          materialDesign:HintAssist.Hint="Команда (опционально)" Margin="0,0,0,10"/>
+                          materialDesign:HintAssist.Hint="Команда (опционально)" Margin="0,0,0,12"/>
                 <Button Content="Добавить" Click="SendInvitation_Click"
                         Style="{StaticResource VsCodePrimaryButton}"
                         HorizontalAlignment="Left"/>
             </StackPanel>
         </Border>
 
-        <DockPanel Grid.Row="2" Margin="12,12,12,0" LastChildFill="True">
+        <DockPanel Grid.Row="2" Margin="0,0,0,8" LastChildFill="True">
             <TextBlock DockPanel.Dock="Top" Text="Список" FontWeight="SemiBold" Margin="0,0,0,8"/>
-            <ListBox x:Name="MembersListBox">
+            <ListBox x:Name="MembersListBox" Style="{StaticResource StretchListBox}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Padding="10" Margin="0,0,0,6"
+                        <Border Padding="12,10"
+                                HorizontalAlignment="Stretch"
                                 Background="{StaticResource VsCodePanelBg}"
                                 BorderBrush="{StaticResource VsCodeBorder}"
                                 BorderThickness="1"
@@ -55,7 +55,8 @@
                 Background="{StaticResource VsCodeTitleBarBg}"
                 BorderBrush="{StaticResource VsCodeBorderSubtle}"
                 BorderThickness="0,1,0,0"
-                Padding="12,8">
+                Padding="8,10"
+                Margin="0,4,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Профиль выбранного"
                         Click="OpenProfile_Click"

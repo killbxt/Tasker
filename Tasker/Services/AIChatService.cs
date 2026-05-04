@@ -19,7 +19,7 @@ namespace TaskManager.Services
             _httpClient.DefaultRequestHeaders.Add("x-proxy-source", "wpf-app");
         }
 
-        public async Task<string> SendMessageAsync(string userMessage, List<Models.Task> currentTasks)
+        public async Task<string> SendMessageAsync(string userMessage, List<Models.Task> currentTasks, string workspaceContextJson)
         {
             var tasksJson = JsonSerializer.Serialize(currentTasks.Select(t => new
             {
@@ -29,28 +29,51 @@ namespace TaskManager.Services
                 Status = t.Status.ToString(),
                 Priority = t.Priority.ToString(),
                 PlannedStartAt = t.PlannedStartAt?.ToString("yyyy-MM-ddTHH:mm"),
-                PlannedEndAt = t.PlannedEndAt.ToString("yyyy-MM-ddTHH:mm")
+                PlannedEndAt = t.PlannedEndAt.ToString("yyyy-MM-ddTHH:mm"),
+                t.TeamId
             }));
 
-            var systemPrompt = $@"Ты помощник в управлении задачами. Текущие задачи пользователя: {tasksJson}
+            var systemPrompt = $@"Ты помощник приложения Tasker (задачи, организации, команды). Пиши message пользователю по-русски, коротко и ясно.
 
-                Ответь строго в формате JSON без лишнего текста:
-                {{
-                    ""action"": ""create|update|delete|none"",
-                    ""taskId"": число или null,
-                    ""taskData"": {{
-                        ""title"": ""название задачи"",
-                        ""description"": ""описание"",
-                        ""plannedStartAt"": ""2024-12-31T09:00"",
-                        ""plannedEndAt"": ""2024-12-31T18:00"",
-                        ""priority"": ""Urgent|Normal""
-                    }},
-                    ""message"": ""текст ответа пользователю""
-                }}";
+КОНТЕКСТ РАБОЧЕГО ПРОСТРАНСТВА (JSON): {workspaceContextJson}
+
+ТЕКУЩИЕ ЗАДАЧИ (JSON): {tasksJson}
+
+Ответь СТРОГО одним JSON-объектом без текста до или после:
+{{
+  ""action"": ""create_task|update_task|delete_task|update_organization|delete_organization|create_team|update_team|delete_team|none"",
+  ""taskId"": null или число,
+  ""teamId"": null или число (id команды из контекста),
+  ""taskData"": {{
+    ""title"": ""..."",
+    ""description"": ""..."",
+    ""plannedStartAt"": ""yyyy-MM-ddTHH:mm"" или null,
+    ""plannedEndAt"": ""yyyy-MM-ddTHH:mm"",
+    ""priority"": ""Urgent"" или ""Normal""
+  }},
+  ""organizationData"": {{
+    ""name"": ""..."",
+    ""description"": ""...""
+  }},
+  ""teamData"": {{
+    ""name"": ""..."",
+    ""description"": ""...""
+  }},
+  ""message"": ""понятное объяснение для пользователя""
+}}
+
+Правила:
+- Если речь только о задачах — используй create_task / update_task / delete_task. Старые имена create/update/delete тоже допустимы внутри логики, но в поле action выводи именно create_task, update_task, delete_task.
+- update_organization: только если у пользователя есть organization в контексте; заполни organizationData (хотя бы name). Любой участник организации может переименовать её.
+- delete_organization: только если пользователь явно просит удалить организацию/компанию целиком; teamId и taskId должны быть null. Очень разрушительное действие — в message предупреди.
+- create_team: нужна организация в контексте; teamData.name обязателен.
+- update_team / delete_team: укажи teamId из списка команд; удалять и переименовывать может только владелец (ownerId в контексте должен совпадать с userId).
+- Если сомневаешься или не хватает данных — action = ""none"" и в message спроси или объясни.
+- plannedEndAt обязателен для create_task; если не сказано — придумай разумный срок через несколько дней.";
 
             var requestBody = new
             {
-                message = $"{systemPrompt}\n\nПользователь сказал: {userMessage}",
+                message = $"{systemPrompt}\n\nСообщение пользователя: {userMessage}",
                 parent_message_id = (string?)null,
                 file_ids = new string[] { },
                 metadata = new { }

@@ -2,40 +2,42 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:controls="clr-namespace:TaskManager.Controls"
         Title="Аналитика" Height="520" Width="720"
         WindowStartupLocation="CenterOwner"
-        Style="{StaticResource MaterialDesignWindow}">
+        Style="{StaticResource TaskerChromeWindow}">
 
-    <Grid Background="{StaticResource VsCodeEditorBg}">
+    <Grid Margin="{StaticResource AppPadHalfRem}" Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
-            <StackPanel Orientation="Horizontal">
-                <materialDesign:PackIcon Kind="ChartBar" Width="18" Height="18"
-                                         Foreground="{StaticResource VsCodeAccentBlue}"/>
-                <TextBlock x:Name="ScopeTitle" Text="Аналитика" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Border>
+        <controls:WindowTitleBar Grid.Row="0" TitleText="Аналитика"/>
 
-        <UniformGrid Grid.Row="1" Columns="3" Margin="12,12,12,0">
-            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,0">
+        <TextBlock x:Name="ScopeTitle"
+                   Grid.Row="1"
+                   Margin="0,6,0,10"
+                   FontWeight="SemiBold"
+                   TextWrapping="Wrap"/>
+
+        <UniformGrid Grid.Row="2" Rows="1" Columns="3">
+            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,10">
                 <StackPanel>
                     <TextBlock Text="Закрыто всего" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
                     <TextBlock x:Name="TotalDoneText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,0">
+            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,10">
                 <StackPanel>
                     <TextBlock Text="За 7 дней" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
                     <TextBlock x:Name="Done7DaysText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource AppPanelStyle}">
+            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,0,10">
                 <StackPanel>
                     <TextBlock Text="Среднее время" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
                     <TextBlock x:Name="AvgLeadTimeText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
@@ -43,17 +45,18 @@
             </Border>
         </UniformGrid>
 
-        <Border Grid.Row="2" Style="{StaticResource AppPanelStyle}" Margin="12,12,12,0">
+        <Border Grid.Row="3" Style="{StaticResource AppPanelStyle}" Margin="0,0,0,8">
             <StackPanel>
                 <TextBlock Text="Топ исполнителей (закрыто)" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <ItemsControl x:Name="TopAssigneesList">
+                <ItemsControl x:Name="TopAssigneesList" HorizontalContentAlignment="Stretch">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="{StaticResource VsCodeBorder}" BorderThickness="0,0,0,1" Padding="0,6">
-                                <DockPanel>
-                                    <TextBlock Text="{Binding Name}" DockPanel.Dock="Left"/>
+                            <Border BorderBrush="{StaticResource VsCodeBorder}" BorderThickness="0,0,0,1" Padding="0,8"
+                                    HorizontalAlignment="Stretch">
+                                <DockPanel LastChildFill="True">
                                     <TextBlock Text="{Binding Count}" DockPanel.Dock="Right" FontWeight="SemiBold"
-                                               Foreground="{StaticResource VsCodeAccentBlue}"/>
+                                               Foreground="{StaticResource VsCodeAccentBlue}" Margin="12,0,0,0"/>
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
                                 </DockPanel>
                             </Border>
                         </DataTemplate>
@@ -62,11 +65,12 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="3"
+        <Border Grid.Row="4"
                 Background="{StaticResource VsCodeTitleBarBg}"
                 BorderBrush="{StaticResource VsCodeBorderSubtle}"
                 BorderThickness="0,1,0,0"
-                Padding="12,8">
+                Padding="8,10"
+                Margin="0,4,0,0">
             <Button Content="Закрыть"
                     Click="Close_Click"
                     HorizontalAlignment="Right"

@@ -48,6 +48,12 @@ namespace TaskManager.Data
                 .WithMany(u => u.AssignedTasks)
                 .HasForeignKey(t => t.AssignedToId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Models.Task>()
+                .HasOne(t => t.Team)
+                .WithMany(t => t.Tasks)
+                .HasForeignKey(t => t.TeamId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

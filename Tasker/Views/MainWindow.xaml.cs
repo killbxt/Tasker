@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using MaterialDesignThemes.Wpf;
 using TaskManager.Data;
 using TaskManager.Models;
 using TaskManager.Services;
@@ -16,6 +17,7 @@ namespace TaskManager.Views
         public MainWindow(AuthService authService)
         {
             InitializeComponent();
+            StateChanged += (_, _) => UpdateMaximizeGlyph();
             _authService = authService;
             _viewModel = new MainViewModel(authService);
             DataContext = _viewModel;
@@ -30,10 +32,47 @@ namespace TaskManager.Views
             _viewModel.OpenAIChatCommand = new RelayCommand(OpenAIChat);
             _viewModel.OpenProfileCommand = new RelayCommand(OpenProfile);
             _viewModel.OpenAnalyticsCommand = new RelayCommand(OpenAnalytics);
+            _viewModel.OpenOverdueReportCommand = new RelayCommand(OpenOverdueReport);
             _viewModel.LogoutCommand = new RelayCommand(Logout);
 
             _viewModel.ManageTeamsCommand = new RelayCommand(ManageTeams);
+            UpdateMaximizeGlyph();
         }
+
+        private void UpdateMaximizeGlyph()
+        {
+            if (MaximizeRestoreIcon == null)
+            {
+                return;
+            }
+
+            MaximizeRestoreIcon.Kind = WindowState == WindowState.Maximized
+                ? PackIconKind.WindowRestore
+                : PackIconKind.WindowMaximize;
+            MaximizeRestoreButton.ToolTip = WindowState == WindowState.Maximized ? "Окно" : "Развернуть";
+        }
+
+        private void ChromeBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                DragMove();
+            }
+            catch
+            {
+                // Игнорируем, если окно уже в особом состоянии при старте перетаскивания
+            }
+        }
+
+        private void WindowMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+        private void WindowMaximizeRestore_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void WindowClose_Click(object sender, RoutedEventArgs e) => Close();
+
         public void RefreshData()
         {
             _viewModel.LoadTeams();
@@ -49,11 +88,7 @@ namespace TaskManager.Views
         }
         private void AddTask()
         {
-            var teams = new System.Collections.ObjectModel.ObservableCollection<Team>(
-                _viewModel.TeamFilters.Where(t => t.Team != null).Select(t => t.Team!).ToList()
-            );
-
-            var dialog = new TaskDialog(_authService.CurrentUser!, teams, null, _viewModel.SelectedTeamFilter?.Team);
+            var dialog = new TaskDialog(_authService.CurrentUser!, _viewModel.TeamFilters, null, _viewModel.SelectedTeamFilter?.Team);
             if (dialog.ShowDialog() == true && dialog.ResultTask != null)
             {
                 _viewModel.AddTask(dialog.ResultTask);
@@ -67,19 +102,19 @@ namespace TaskManager.Views
                 return;
             }
 
-            var teams = new System.Collections.ObjectModel.ObservableCollection<Team>(
-                _viewModel.TeamFilters.Where(t => t.Team != null).Select(t => t.Team!).ToList()
-            );
-
-            var dialog = new TaskDialog(_authService.CurrentUser!, teams, task.Task, _viewModel.SelectedTeamFilter?.Team);
+            var dialog = new TaskDialog(_authService.CurrentUser!, _viewModel.TeamFilters, task.Task, _viewModel.SelectedTeamFilter?.Team);
             if (dialog.ShowDialog() == true && dialog.ResultTask != null)
             {
-                task.Title = dialog.ResultTask.Title;
-                task.Description = dialog.ResultTask.Description;
-                task.PlannedStartAt = dialog.ResultTask.PlannedStartAt;
-                task.PlannedEndAt = dialog.ResultTask.PlannedEndAt;
-                task.Priority = dialog.ResultTask.Priority;
-                task.Status = dialog.ResultTask.Status;
+                var t = task.Task;
+                var r = dialog.ResultTask;
+                t.Title = r.Title;
+                t.Description = r.Description;
+                t.PlannedStartAt = r.PlannedStartAt;
+                t.PlannedEndAt = r.PlannedEndAt;
+                t.Priority = r.Priority;
+                t.Status = r.Status;
+                t.TeamId = r.TeamId;
+                t.AssignedToId = r.AssignedToId;
                 _viewModel.UpdateTask(task);
             }
         }
@@ -98,9 +133,10 @@ namespace TaskManager.Views
             }
         }
 
-        private async void OpenAIChat()
+        private void OpenAIChat()
         {
-            var chatDialog = new AIChatDialog(_viewModel);
+            var chatDialog = new AIChatDialog(_viewModel, _authService);
+            chatDialog.Owner = this;
             chatDialog.ShowDialog();
         }
 
@@ -126,6 +162,18 @@ namespace TaskManager.Views
             }
 
             var dialog = new AnalyticsDialog(_authService, _viewModel.SelectedTeamFilter?.Team);
+            dialog.Owner = this;
+            dialog.ShowDialog();
+        }
+
+        private void OpenOverdueReport()
+        {
+            if (_authService.CurrentUser == null)
+            {
+                return;
+            }
+
+            var dialog = new OverdueReportDialog(_authService);
             dialog.Owner = this;
             dialog.ShowDialog();
         }

@@ -3,10 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:dd="urn:gong-wpf-dragdrop"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="Tasker" Height="768" Width="1366"
         WindowStartupLocation="CenterScreen"
-        Style="{StaticResource MaterialDesignWindow}"
-        AllowsTransparency="False">
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{StaticResource VsCodeEditorBg}"
+        Foreground="{StaticResource VsCodeForeground}"
+        FontFamily="Segoe UI"
+        FontSize="13">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="30"
+                            ResizeBorderThickness="6"
+                            GlassFrameThickness="0"
+                            CornerRadius="0"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
         <Style x:Key="ColumnChrome" TargetType="Border">
@@ -89,8 +102,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- VS Code-style top bar -->
-        <Border Grid.Row="0" Style="{StaticResource VsCodeTitleBarBorder}">
+        <!-- Custom title / toolbar (replaces системная шапка Windows) -->
+        <Border Grid.Row="0"
+                Background="{StaticResource VsCodeTitleBarBg}"
+                BorderBrush="{StaticResource VsCodeBorderSubtle}"
+                BorderThickness="0,0,0,1"
+                Padding="6,4"
+                MouseLeftButtonDown="ChromeBar_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -98,46 +116,77 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- Название + область слева; поиск отдельно по центру средней колонки -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <materialDesign:PackIcon Kind="ViewDashboard" Width="18" Height="18"
-                                             Foreground="{StaticResource VsCodeAccentBlue}"/>
-                    <TextBlock Text="Tasker" FontWeight="SemiBold" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="Tasker" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
                     <ComboBox ItemsSource="{Binding TeamFilters}"
                               SelectedItem="{Binding SelectedTeamFilter}"
                               DisplayMemberPath="Name"
-                              Width="200"
+                              Width="180"
                               materialDesign:HintAssist.Hint="Область"
-                              Margin="0,0,8,0"
-                              VerticalAlignment="Center"/>
-
-                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             materialDesign:HintAssist.Hint="Поиск (Ctrl+F в будущем)"
-                             Width="260"
-                             materialDesign:TextFieldAssist.HasClearButton="True"
-                             VerticalAlignment="Center"/>
+                              materialDesign:HintAssist.IsFloating="True"
+                              Margin="10,0,0,0"
+                              VerticalAlignment="Center"
+                              shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Command="{Binding AddTaskCommand}" ToolTip="Новая задача" Style="{StaticResource VsCodeIconButton}">
-                        <materialDesign:PackIcon Kind="Plus" Width="18" Height="18"/>
+                <!-- Высоту не фиксируем: у MaterialDesign Outlined иначе обрезается Hint -->
+                <TextBox Grid.Column="1"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Поиск"
+                         materialDesign:HintAssist.IsFloating="True"
+                         MinWidth="300"
+                         Width="400"
+                         MaxWidth="560"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Command="{Binding AddTaskCommand}" ToolTip="Новая задача"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="Plus" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding OpenProfileCommand}" ToolTip="Профиль" Style="{StaticResource VsCodeIconButton}">
-                        <materialDesign:PackIcon Kind="AccountOutline" Width="18" Height="18"/>
+                    <Button Command="{Binding OpenProfileCommand}" ToolTip="Профиль"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="AccountOutline" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding OpenAnalyticsCommand}" ToolTip="Аналитика" Style="{StaticResource VsCodeIconButton}">
-                        <materialDesign:PackIcon Kind="ChartBar" Width="18" Height="18"/>
+                    <Button Command="{Binding OpenAnalyticsCommand}" ToolTip="Аналитика"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="ChartBar" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding ManageTeamsCommand}" ToolTip="Команды и организация" Style="{StaticResource VsCodeIconButton}">
-                        <materialDesign:PackIcon Kind="AccountGroupOutline" Width="18" Height="18"/>
+                    <Button Command="{Binding OpenOverdueReportCommand}" ToolTip="Просрочки по командам (для владельца)"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="ClockAlertOutline" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding OpenAIChatCommand}" ToolTip="AI помощник" Style="{StaticResource VsCodeIconButton}">
-                        <materialDesign:PackIcon Kind="RobotOutline" Width="18" Height="18"/>
+                    <Button Command="{Binding ManageTeamsCommand}" ToolTip="Организация и команды"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="AccountGroupOutline" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding LogoutCommand}" ToolTip="Выйти" Style="{StaticResource VsCodeIconButton}">
-                        <materialDesign:PackIcon Kind="Logout" Width="18" Height="18"/>
+                    <Button Command="{Binding OpenAIChatCommand}" ToolTip="AI помощник"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="RobotOutline" Width="16" Height="16"/>
+                    </Button>
+                    <Button Command="{Binding LogoutCommand}" ToolTip="Выйти"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="Logout" Width="16" Height="16"/>
+                    </Button>
+
+                    <Border Width="1" Height="18" Background="{StaticResource VsCodeBorder}" Margin="8,0,4,0" VerticalAlignment="Center"/>
+
+                    <Button Click="WindowMinimize_Click" ToolTip="Свернуть"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon Kind="WindowMinimize" Width="16" Height="16"/>
+                    </Button>
+                    <Button x:Name="MaximizeRestoreButton" Click="WindowMaximizeRestore_Click" ToolTip="Развернуть"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <materialDesign:PackIcon x:Name="MaximizeRestoreIcon" Kind="WindowMaximize" Width="16" Height="16"/>
+                    </Button>
+                    <Button Click="WindowClose_Click" ToolTip="Закрыть"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Foreground="{StaticResource VsCodeForeground}">
+                        <materialDesign:PackIcon Kind="WindowClose" Width="16" Height="16"/>
                     </Button>
                 </StackPanel>
             </Grid>

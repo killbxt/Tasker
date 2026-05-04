@@ -70,21 +70,13 @@ namespace TaskManager.Views
             }
         }
 
-        private ObservableCollection<Team> LoadUserTeams()
+        /// <summary>Профиль показывает только личные задачи; в диалоге — только личная область.</summary>
+        private static ObservableCollection<TeamFilterItem> PersonalWorkspaceOnly()
         {
-            var user = _authService.CurrentUser;
-            if (user == null)
+            return new ObservableCollection<TeamFilterItem>
             {
-                return new ObservableCollection<Team>();
-            }
-
-            var userId = user.Id;
-            var teams = _context.Teams
-                .Include(t => t.Members)
-                .Where(t => t.Members.Any(m => m.Id == userId))
-                .ToList();
-
-            return new ObservableCollection<Team>(teams);
+                new TeamFilterItem { Name = "Личные задачи", Team = null }
+            };
         }
 
         private void AddTask_Click(object sender, RoutedEventArgs e)
@@ -95,7 +87,7 @@ namespace TaskManager.Views
                 return;
             }
 
-            var dialog = new TaskDialog(user, LoadUserTeams(), null, selectedTeam: null);
+            var dialog = new TaskDialog(user, PersonalWorkspaceOnly(), null, selectedTeam: null);
             dialog.Owner = this;
             if (dialog.ShowDialog() == true && dialog.ResultTask != null)
             {
@@ -122,7 +114,7 @@ namespace TaskManager.Views
                 return;
             }
 
-            var dialog = new TaskDialog(user, LoadUserTeams(), taskVm.Task, selectedTeam: null);
+            var dialog = new TaskDialog(user, PersonalWorkspaceOnly(), taskVm.Task, selectedTeam: null);
             dialog.Owner = this;
             if (dialog.ShowDialog() == true && dialog.ResultTask != null)
             {
@@ -132,6 +124,8 @@ namespace TaskManager.Views
                 taskVm.PlannedEndAt = dialog.ResultTask.PlannedEndAt;
                 taskVm.Priority = dialog.ResultTask.Priority;
                 taskVm.Status = dialog.ResultTask.Status;
+                taskVm.Task.TeamId = dialog.ResultTask.TeamId;
+                taskVm.Task.AssignedToId = dialog.ResultTask.AssignedToId;
 
                 taskVm.Task.UpdatedAt = DateTime.Now;
                 if (taskVm.Task.Status == TaskState.Done)

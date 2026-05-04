@@ -55,6 +55,7 @@ namespace TaskManager.ViewModels
         public ICommand OpenAIChatCommand { get; set; }
         public ICommand OpenProfileCommand { get; set; }
         public ICommand OpenAnalyticsCommand { get; set; }
+        public ICommand OpenOverdueReportCommand { get; set; }
         public ICommand LogoutCommand { get; set; }
         public ICommand ManageTeamsCommand { get; set; }
         public MainViewModel(AuthService authService)
@@ -72,6 +73,7 @@ namespace TaskManager.ViewModels
             OpenAIChatCommand = new RelayCommand(() => { });
             OpenProfileCommand = new RelayCommand(() => { });
             OpenAnalyticsCommand = new RelayCommand(() => { });
+            OpenOverdueReportCommand = new RelayCommand(() => { });
             LogoutCommand = new RelayCommand(() => { });
             ManageTeamsCommand = new RelayCommand(ManageTeams);
             DropHandler = new DropHandler(this);

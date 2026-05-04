@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows;
 using TaskManager.Models;
+using TaskManager.ViewModels;
 
 namespace TaskManager.Views
 {
@@ -11,24 +12,18 @@ namespace TaskManager.Views
         private readonly Models.Task? _editingTask;
         private readonly User _currentUser;
 
-        public TaskDialog(User currentUser, ObservableCollection<Team> teams, Models.Task? task = null, Team? selectedTeam = null)
+        public TaskDialog(
+            User currentUser,
+            ObservableCollection<TeamFilterItem> workspaceOptions,
+            Models.Task? task = null,
+            Team? selectedTeam = null)
         {
             InitializeComponent();
             _editingTask = task;
             _currentUser = currentUser;
 
-            TeamComboBox.ItemsSource = teams;
-            TeamComboBox.SelectedItem = null;
+            TeamComboBox.ItemsSource = workspaceOptions;
             TeamComboBox.SelectionChanged += (_, _) => RefreshAssignees();
-
-            if (selectedTeam != null)
-            {
-                TeamComboBox.SelectedItem = selectedTeam;
-            }
-            else if (teams.Any())
-            {
-                TeamComboBox.SelectedItem = teams.FirstOrDefault();
-            }
 
             if (task != null)
             {
@@ -42,10 +37,8 @@ namespace TaskManager.Views
                 PriorityComboBox.SelectedIndex = task.Priority == TaskPriority.Urgent ? 1 : 0;
                 StatusComboBox.SelectedIndex = (int)task.Status;
 
-                if (task.Team != null)
-                {
-                    TeamComboBox.SelectedItem = task.Team;
-                }
+                TeamComboBox.SelectedItem = workspaceOptions.FirstOrDefault(o =>
+                    task.TeamId == null ? o.Team == null : o.Team?.Id == task.TeamId);
 
                 RefreshAssignees();
                 if (task.AssignedTo != null)
@@ -55,6 +48,16 @@ namespace TaskManager.Views
             }
             else
             {
+                if (selectedTeam != null)
+                {
+                    TeamComboBox.SelectedItem = workspaceOptions.FirstOrDefault(o => o.Team?.Id == selectedTeam.Id);
+                }
+                else
+                {
+                    TeamComboBox.SelectedItem = workspaceOptions.FirstOrDefault(o => o.Team == null)
+                        ?? workspaceOptions.FirstOrDefault();
+                }
+
                 StartDatePicker.SelectedDate = DateTime.Now.Date;
                 StartTimeTextBox.Text = "09:00";
                 EndDatePicker.SelectedDate = DateTime.Now.AddDays(7).Date;
@@ -70,17 +73,17 @@ namespace TaskManager.Views
             AssigneeComboBox.ItemsSource = null;
             AssigneeComboBox.SelectedItem = null;
 
-            if (TeamComboBox.SelectedItem is not Team team)
+            if (TeamComboBox.SelectedItem is not TeamFilterItem pick || pick.Team == null)
             {
                 AssigneeComboBox.IsEnabled = false;
                 return;
             }
 
-            // Only team owner can assign tasks within the team.
+            var team = pick.Team;
+
             var isOwner = team.OwnerId == _currentUser.Id;
             AssigneeComboBox.IsEnabled = isOwner;
 
-            // Members list must exist on team when loaded via MainViewModel/LoadTeams.
             var members = team.Members?.ToList() ?? new List<User>();
             AssigneeComboBox.ItemsSource = members;
 
@@ -143,9 +146,9 @@ namespace TaskManager.Views
             ResultTask.Priority = PriorityComboBox.SelectedIndex == 1 ? TaskPriority.Urgent : TaskPriority.Normal;
             ResultTask.Status = (TaskState)StatusComboBox.SelectedIndex;
 
-            if (TeamComboBox.SelectedItem is Team selectedTeam)
+            if (TeamComboBox.SelectedItem is TeamFilterItem area && area.Team != null)
             {
-                ResultTask.TeamId = selectedTeam.Id;
+                ResultTask.TeamId = area.Team.Id;
             }
             else
             {
@@ -158,7 +161,6 @@ namespace TaskManager.Views
             }
             else
             {
-                // Personal tasks (or non-owner in team) default to self.
                 ResultTask.AssignedToId ??= _currentUser.Id;
             }
 
