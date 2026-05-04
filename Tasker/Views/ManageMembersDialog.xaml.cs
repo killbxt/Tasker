@@ -22,6 +22,17 @@ namespace TaskManager.Views
             _authService = authService;
             _currentOrganization = organization;
 
+            if (_authService.CurrentUser == null || organization.OwnerId != _authService.CurrentUser.Id)
+            {
+                MessageBox.Show(
+                    "Управлять участниками может только владелец организации.",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                Close();
+                return;
+            }
+
             LoadMembers();
             LoadTeams();
         }
@@ -83,6 +94,11 @@ namespace TaskManager.Views
             }
 
             await _context.SaveChangesAsync();
+
+            if (_authService.CurrentUser != null && user.Id == _authService.CurrentUser.Id)
+            {
+                _authService.RefreshCurrentUser();
+            }
 
             MessageBox.Show($"Пользователь добавлен в организацию{teamMessage}.",
                 "Готово", MessageBoxButton.OK, MessageBoxImage.Information);

@@ -54,8 +54,20 @@ namespace TaskManager.Views
 
                 if (team != null && user != null)
                 {
+                    if (user.OrganizationId.HasValue && user.OrganizationId.Value != team.OrganizationId)
+                    {
+                        MessageBox.Show(
+                            "Вы уже состоите в другой организации. В одной организации может быть только одна привязка.",
+                            "Нельзя вступить",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    user.OrganizationId = team.OrganizationId;
                     team.Members.Add(user);
                     _context.SaveChanges();
+                    _authService.RefreshCurrentUser();
                     MessageBox.Show($"Вы вступили в команду {team.Name}!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     Close();
                 }

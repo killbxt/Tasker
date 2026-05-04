@@ -34,6 +34,8 @@ namespace TaskManager.ViewModels
         }
 
         private TeamFilterItem? _selectedTeamFilter;
+        private bool _suppressSelectedTeamFilterChanged;
+
         public TeamFilterItem? SelectedTeamFilter
         {
             get => _selectedTeamFilter;
@@ -41,7 +43,10 @@ namespace TaskManager.ViewModels
             {
                 _selectedTeamFilter = value;
                 OnPropertyChanged();
-                LoadTasks();
+                if (!_suppressSelectedTeamFilterChanged)
+                {
+                    LoadTasks();
+                }
             }
         }
 
@@ -58,6 +63,30 @@ namespace TaskManager.ViewModels
         public ICommand OpenOverdueReportCommand { get; set; }
         public ICommand LogoutCommand { get; set; }
         public ICommand ManageTeamsCommand { get; set; }
+
+        private bool _canModifyTasks = true;
+        private bool _canUsePowerFeatures = true;
+
+        /// <summary>
+        /// Личные задачи — всегда можно править залогиненному; командная доска — только владельцу организации или капитану команды.
+        /// Участник на доске команды может только перетаскивать свои карточки.
+        /// </summary>
+        public bool CanModifyTasks => _canModifyTasks;
+
+        /// <summary>AI, аналитика, отчёт просрочек. У приглашённого в чужой организации — false.</summary>
+        public bool CanUsePowerFeatures
+        {
+            get => _canUsePowerFeatures;
+            private set
+            {
+                _canUsePowerFeatures = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>Подсказка на командной доске для участника: только перетаскивание карточек.</summary>
+        public bool ShowParticipantBoardHint => !CanModifyTasks && SelectedTeamFilter?.Team != null;
+
         public MainViewModel(AuthService authService)
         {
             _context = new ApplicationDbContext();
@@ -78,7 +107,51 @@ namespace TaskManager.ViewModels
             ManageTeamsCommand = new RelayCommand(ManageTeams);
             DropHandler = new DropHandler(this);
             LoadTeams();
-            LoadTasks();
+        }
+
+        private void RefreshWorkspacePermissions()
+        {
+            if (_authService.CurrentUser == null)
+            {
+                _canModifyTasks = false;
+                OnPropertyChanged(nameof(CanModifyTasks));
+                OnPropertyChanged(nameof(ShowParticipantBoardHint));
+                CanUsePowerFeatures = false;
+                return;
+            }
+
+            var uid = _authService.CurrentUser.Id;
+            CanUsePowerFeatures = WorkspacePermissions.CanUsePowerFeatures(_context, uid);
+            UpdateCanModifyTasks();
+        }
+
+        private bool ComputeCanModifyTasks()
+        {
+            if (_authService.CurrentUser == null)
+            {
+                return false;
+            }
+
+            var uid = _authService.CurrentUser.Id;
+            var team = SelectedTeamFilter?.Team;
+            if (team == null)
+            {
+                return WorkspacePermissions.CanModifyPersonalTasks(uid);
+            }
+
+            return WorkspacePermissions.CanModifyTeamBoard(_context, uid, team);
+        }
+
+        private void UpdateCanModifyTasks()
+        {
+            var v = ComputeCanModifyTasks();
+            if (_canModifyTasks != v)
+            {
+                _canModifyTasks = v;
+                OnPropertyChanged(nameof(CanModifyTasks));
+            }
+
+            OnPropertyChanged(nameof(ShowParticipantBoardHint));
         }
 
         private void ManageTeams()
@@ -86,22 +159,29 @@ namespace TaskManager.ViewModels
             var dialog = new ManageTeamsDialog(_authService);
             dialog.ShowDialog();
             LoadTeams();
-            LoadTasks();
         }
 
         public void LoadTeams()
         {
-            if (_authService.CurrentUser != null)
+            RefreshWorkspacePermissions();
+
+            if (_authService.CurrentUser == null)
             {
-                var currentUserId = _authService.CurrentUser.Id;
-                var teams = _context.Teams
-                    .Include(t => t.Owner)
-                    .Include(t => t.Members)
-                    .Where(t => t.Members.Any(m => m.Id == currentUserId))
-                    .ToList();
+                return;
+            }
 
-                var previousSelectedTeamId = SelectedTeamFilter?.Team?.Id;
+            var currentUserId = _authService.CurrentUser.Id;
+            var teams = _context.Teams
+                .Include(t => t.Owner)
+                .Include(t => t.Members)
+                .Where(t => t.Members.Any(m => m.Id == currentUserId))
+                .ToList();
 
+            var previousSelectedTeamId = SelectedTeamFilter?.Team?.Id;
+
+            _suppressSelectedTeamFilterChanged = true;
+            try
+            {
                 TeamFilters.Clear();
                 TeamFilters.Add(new TeamFilterItem { Name = "Личные задачи", Team = null });
                 foreach (var team in teams.OrderBy(t => t.Name))
@@ -109,11 +189,17 @@ namespace TaskManager.ViewModels
                     TeamFilters.Add(new TeamFilterItem { Name = team.Name, Team = team });
                 }
 
-                // restore selection
-                SelectedTeamFilter =
+                _selectedTeamFilter =
                     TeamFilters.FirstOrDefault(t => t.Team?.Id == previousSelectedTeamId)
                     ?? TeamFilters.FirstOrDefault();
+                OnPropertyChanged(nameof(SelectedTeamFilter));
             }
+            finally
+            {
+                _suppressSelectedTeamFilterChanged = false;
+            }
+
+            LoadTasks();
         }
 
         public void LoadTasks()
@@ -136,14 +222,15 @@ namespace TaskManager.ViewModels
                 if (selectedTeam != null)
                 {
                     var teamId = selectedTeam.Id;
-                    var isOwner = selectedTeam.OwnerId == currentUserId;
-                    if (isOwner)
+                    var isOrgOwner = _context.Organizations.AsNoTracking()
+                        .Any(o => o.Id == selectedTeam.OrganizationId && o.OwnerId == currentUserId);
+                    var isTeamOwner = selectedTeam.OwnerId == currentUserId;
+                    if (isOrgOwner || isTeamOwner)
                     {
                         query = query.Where(t => t.TeamId == teamId);
                     }
                     else
                     {
-                        // Members see only tasks assigned to them within the team.
                         query = query.Where(t => t.TeamId == teamId && t.AssignedToId == currentUserId);
                     }
                 }
@@ -178,6 +265,8 @@ namespace TaskManager.ViewModels
                         break;
                 }
             }
+
+            UpdateCanModifyTasks();
         }
 
         public void AddTask(Models.Task task)
@@ -215,25 +304,47 @@ namespace TaskManager.ViewModels
 
         public void ClearColumn(TaskState status)
         {
-            if (_authService.CurrentUser == null)
+            if (_authService.CurrentUser == null || !CanModifyTasks)
             {
                 return;
             }
 
             var currentUserId = _authService.CurrentUser.Id;
+            var selectedTeam = SelectedTeamFilter?.Team;
             IQueryable<Models.Task> tasksToDelete;
 
-            if (status == TaskState.Todo)
+            if (selectedTeam != null)
             {
-                tasksToDelete = _context.Tasks.Where(t => t.Status == TaskState.Todo && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
-            }
-            else if (status == TaskState.InProgress)
-            {
-                tasksToDelete = _context.Tasks.Where(t => t.Status == TaskState.InProgress && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
+                var isOrgOwner = _context.Organizations.AsNoTracking()
+                    .Any(o => o.Id == selectedTeam.OrganizationId && o.OwnerId == currentUserId);
+                var canManageAllTeam = isOrgOwner || selectedTeam.OwnerId == currentUserId;
+                if (canManageAllTeam)
+                {
+                    tasksToDelete = status switch
+                    {
+                        TaskState.Todo => _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && t.Status == TaskState.Todo),
+                        TaskState.InProgress => _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && t.Status == TaskState.InProgress),
+                        _ => _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && t.Status == TaskState.Done)
+                    };
+                }
+                else
+                {
+                    tasksToDelete = status switch
+                    {
+                        TaskState.Todo => _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && t.Status == TaskState.Todo && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId)),
+                        TaskState.InProgress => _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && t.Status == TaskState.InProgress && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId)),
+                        _ => _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && t.Status == TaskState.Done && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId))
+                    };
+                }
             }
             else
             {
-                tasksToDelete = _context.Tasks.Where(t => t.Status == TaskState.Done && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
+                tasksToDelete = status switch
+                {
+                    TaskState.Todo => _context.Tasks.Where(t => t.TeamId == null && t.Status == TaskState.Todo && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId)),
+                    TaskState.InProgress => _context.Tasks.Where(t => t.TeamId == null && t.Status == TaskState.InProgress && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId)),
+                    _ => _context.Tasks.Where(t => t.TeamId == null && t.Status == TaskState.Done && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId))
+                };
             }
 
             _context.Tasks.RemoveRange(tasksToDelete);
@@ -243,13 +354,28 @@ namespace TaskManager.ViewModels
 
         public void ClearAllColumns()
         {
-            if (_authService.CurrentUser == null)
+            if (_authService.CurrentUser == null || !CanModifyTasks)
             {
                 return;
             }
 
             var currentUserId = _authService.CurrentUser.Id;
-            var userTasks = _context.Tasks.Where(t => t.AssignedToId == currentUserId || t.CreatedById == currentUserId);
+            var selectedTeam = SelectedTeamFilter?.Team;
+            IQueryable<Models.Task> userTasks;
+            if (selectedTeam != null)
+            {
+                var isOrgOwner = _context.Organizations.AsNoTracking()
+                    .Any(o => o.Id == selectedTeam.OrganizationId && o.OwnerId == currentUserId);
+                var canManageAllTeam = isOrgOwner || selectedTeam.OwnerId == currentUserId;
+                userTasks = canManageAllTeam
+                    ? _context.Tasks.Where(t => t.TeamId == selectedTeam.Id)
+                    : _context.Tasks.Where(t => t.TeamId == selectedTeam.Id && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
+            }
+            else
+            {
+                userTasks = _context.Tasks.Where(t => t.TeamId == null && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
+            }
+
             _context.Tasks.RemoveRange(userTasks);
             _context.SaveChanges();
             LoadTasks();

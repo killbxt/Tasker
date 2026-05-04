@@ -76,7 +76,6 @@ namespace TaskManager.Views
         public void RefreshData()
         {
             _viewModel.LoadTeams();
-            _viewModel.LoadTasks();
         }
 
         private void ManageTeams()
@@ -84,10 +83,15 @@ namespace TaskManager.Views
             var dialog = new ManageTeamsDialog(_authService);
             dialog.ShowDialog();
             _viewModel.LoadTeams();
-            _viewModel.LoadTasks();
         }
+
         private void AddTask()
         {
+            if (!_viewModel.CanModifyTasks)
+            {
+                return;
+            }
+
             var dialog = new TaskDialog(_authService.CurrentUser!, _viewModel.TeamFilters, null, _viewModel.SelectedTeamFilter?.Team);
             if (dialog.ShowDialog() == true && dialog.ResultTask != null)
             {
@@ -97,7 +101,7 @@ namespace TaskManager.Views
 
         private void EditTask(TaskViewModel? task)
         {
-            if (task == null)
+            if (task == null || !_viewModel.CanModifyTasks)
             {
                 return;
             }
@@ -121,7 +125,7 @@ namespace TaskManager.Views
 
         private void DeleteTask(TaskViewModel? task)
         {
-            if (task == null)
+            if (task == null || !_viewModel.CanModifyTasks)
             {
                 return;
             }
@@ -135,6 +139,16 @@ namespace TaskManager.Views
 
         private void OpenAIChat()
         {
+            if (!_viewModel.CanUsePowerFeatures)
+            {
+                MessageBox.Show(
+                    "AI-доступен только владельцу организации (или если вы не состоите в чужой организации).",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
             var chatDialog = new AIChatDialog(_viewModel, _authService);
             chatDialog.Owner = this;
             chatDialog.ShowDialog();
@@ -151,13 +165,23 @@ namespace TaskManager.Views
             dialog.Owner = this;
             dialog.ShowDialog();
 
-            _viewModel.LoadTasks();
+            _viewModel.LoadTeams();
         }
 
         private void OpenAnalytics()
         {
             if (_authService.CurrentUser == null)
             {
+                return;
+            }
+
+            if (!_viewModel.CanUsePowerFeatures)
+            {
+                MessageBox.Show(
+                    "Аналитика доступна только владельцу организации.",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return;
             }
 
@@ -170,6 +194,16 @@ namespace TaskManager.Views
         {
             if (_authService.CurrentUser == null)
             {
+                return;
+            }
+
+            if (!_viewModel.CanUsePowerFeatures)
+            {
+                MessageBox.Show(
+                    "Отчёт о просрочках доступен только владельцу организации.",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return;
             }
 

@@ -25,27 +25,39 @@ namespace TaskManager.Views
             var userId = authService.CurrentUser.Id;
             using var db = new ApplicationDbContext();
 
-            var ownedTeamIds = db.Teams.AsNoTracking()
-                .Where(t => t.OwnerId == userId)
+            var orgId = db.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.OrganizationId)
+                .FirstOrDefault();
+
+            if (orgId == null || !db.Organizations.AsNoTracking().Any(o => o.Id == orgId && o.OwnerId == userId))
+            {
+                HintText.Text =
+                    "Отчёт доступен только владельцу организации (просрочки по всем командам организации).";
+                ReportGrid.ItemsSource = Array.Empty<OverdueTaskReportItem>();
+                return;
+            }
+
+            var teamIds = db.Teams.AsNoTracking()
+                .Where(t => t.OrganizationId == orgId)
                 .Select(t => t.Id)
                 .ToList();
 
-            if (ownedTeamIds.Count == 0)
+            if (teamIds.Count == 0)
             {
-                HintText.Text =
-                    "Вы не являетесь владельцем ни одной команды. Отчёт доступен только руководителю команды.";
+                HintText.Text = "В организации пока нет команд.";
                 ReportGrid.ItemsSource = Array.Empty<OverdueTaskReportItem>();
                 return;
             }
 
             HintText.Text =
-                "Незавершённые задачи с истёкшим сроком по командам, где вы владелец. Указаны организация и команда (рабочая область).";
+                "Незавершённые задачи с истёкшим сроком по всем командам вашей организации.";
 
             var now = DateTime.Now;
             var tasks = db.Tasks.AsNoTracking()
                 .Include(t => t.Team)!.ThenInclude(tm => tm!.Organization)
                 .Include(t => t.AssignedTo)
-                .Where(t => t.TeamId.HasValue && ownedTeamIds.Contains(t.TeamId.Value))
+                .Where(t => t.TeamId.HasValue && teamIds.Contains(t.TeamId.Value))
                 .Where(t => t.Status != TaskState.Done && t.PlannedEndAt < now)
                 .OrderBy(t => t.PlannedEndAt)
                 .ToList();

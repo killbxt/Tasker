@@ -25,6 +25,12 @@ namespace TaskManager.Data
                 .HasForeignKey(u => u.OrganizationId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Organization>()
+                .HasOne(o => o.Owner)
+                .WithMany()
+                .HasForeignKey(o => o.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Team>()
                 .HasOne(t => t.Organization)
                 .WithMany(o => o.Teams)

@@ -61,7 +61,16 @@
 
                             <Border x:Name="HasOrgPanel" Style="{StaticResource AppPanelStyle}" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock Text="Текущая организация" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,12"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="Текущая организация" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+                                        <Border x:Name="OwnerRoleBadge" Visibility="Collapsed" Margin="12,0,0,0"
+                                                Background="{StaticResource VsCodeListActive}" CornerRadius="3" Padding="8,4">
+                                            <TextBlock Text="Владелец организации" FontSize="11" FontWeight="SemiBold"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock x:Name="ParticipantRoleHint" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,0,0,12"
+                                               Foreground="{StaticResource VsCodeForegroundMuted}"
+                                               Text="Вы приглашённый участник: на командной доске — только свои карточки и перетаскивание; личные задачи на главном экране и в профиле — как у всех. Управлять организацией и создавать команды может только владелец. Ниже можно покинуть организацию или команду на вкладке «Команды»."/>
                                     <TextBlock x:Name="OrganizationInfoText" Foreground="{StaticResource VsCodeForegroundMuted}"
                                                TextWrapping="Wrap" Margin="0,0,0,16"/>
 
@@ -93,7 +102,14 @@
                                         <Button x:Name="DeleteOrgButton" Content="Удалить организацию…"
                                                 Click="DeleteOrganization_Click"
                                                 Style="{StaticResource VsCodeSecondaryButton}" Margin="0,0,8,8"/>
+                                        <Button x:Name="LeaveOrganizationButton" Content="Покинуть организацию…"
+                                                Click="LeaveOrganization_Click"
+                                                Style="{StaticResource VsCodeSecondaryButton}" Margin="0,0,8,8"
+                                                Visibility="Collapsed"/>
                                     </WrapPanel>
+                                    <TextBlock x:Name="OwnerCannotLeaveOrgHint" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Foreground="{StaticResource VsCodeForegroundMuted}"
+                                               Text="Владелец не может просто выйти из организации. Чтобы уйти, удалите организацию (команды и привязки участников будут сброшены)."/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -150,6 +166,8 @@
                                             Style="{StaticResource VsCodeSecondaryButton}"/>
                                     <TextBlock x:Name="TeamOwnerHint" TextWrapping="Wrap" FontSize="11"
                                                Foreground="{StaticResource VsCodeForegroundMuted}" Margin="0,12,0,0"/>
+                                    <Button x:Name="LeaveTeamButton" Content="Покинуть команду…" Click="LeaveTeam_Click"
+                                            Style="{StaticResource VsCodeSecondaryButton}" Margin="0,12,0,0"/>
                                 </StackPanel>
 
                                 <Border Height="1" Background="{StaticResource VsCodeBorder}" Margin="0,8,0,16"/>
@@ -160,7 +178,7 @@
                                 <TextBox x:Name="TeamNameTextBox" materialDesign:HintAssist.Hint="Название команды" Margin="0,0,0,8"/>
                                 <TextBox x:Name="TeamDescTextBox" materialDesign:HintAssist.Hint="Описание (необязательно)"
                                          TextWrapping="Wrap" Height="56" AcceptsReturn="True" Margin="0,0,0,12"/>
-                                <Button Content="Создать команду" Click="CreateTeam_Click"
+                                <Button x:Name="CreateTeamButton" Content="Создать команду" Click="CreateTeam_Click"
                                         Style="{StaticResource VsCodePrimaryButton}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Border>
@@ -169,16 +187,20 @@
 
                 <TabItem Header="3. Люди">
                     <StackPanel Margin="0,12,0,8">
-                        <Border Style="{StaticResource AppPanelStyle}">
+                        <Border x:Name="PeopleOwnerPanel" Style="{StaticResource AppPanelStyle}">
                             <StackPanel>
                                 <TextBlock Text="Участники" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
                                 <TextBlock TextWrapping="Wrap" Foreground="{StaticResource VsCodeForegroundMuted}" Margin="0,0,0,16"
                                            Text="Добавляйте коллег по email (они уже должны быть зарегистрированы). Можно сразу указать команду."/>
-                                <Button Content="Открыть список участников и приглашения"
+                                <Button x:Name="ManageMembersTabButton" Content="Открыть список участников и приглашения"
                                         Click="ManageMembersFromTab_Click"
                                         Style="{StaticResource VsCodePrimaryButton}"
                                         HorizontalAlignment="Left"/>
                             </StackPanel>
+                        </Border>
+                        <Border x:Name="PeopleParticipantPanel" Style="{StaticResource AppPanelStyle}" Visibility="Collapsed">
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource VsCodeForegroundMuted}"
+                                       Text="Состав организации и приглашения доступны только владельцу организации. Обратитесь к нему, если нужен доступ к другой команде."/>
                         </Border>
                     </StackPanel>
                 </TabItem>

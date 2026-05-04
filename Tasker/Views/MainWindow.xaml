@@ -22,6 +22,7 @@
     </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style x:Key="ColumnChrome" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource VsCodeSidebarBg}"/>
             <Setter Property="BorderBrush" Value="{StaticResource VsCodeBorder}"/>
@@ -75,7 +76,8 @@
                                        Margin="6,0,0,0"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0"
+                                    Visibility="{Binding DataContext.CanModifyTasks, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
                             <Button Command="{Binding DataContext.EditTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource VsCodeIconButton}"
@@ -145,7 +147,8 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button Command="{Binding AddTaskCommand}" ToolTip="Новая задача"
-                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}">
                         <materialDesign:PackIcon Kind="Plus" Width="16" Height="16"/>
                     </Button>
                     <Button Command="{Binding OpenProfileCommand}" ToolTip="Профиль"
@@ -153,11 +156,13 @@
                         <materialDesign:PackIcon Kind="AccountOutline" Width="16" Height="16"/>
                     </Button>
                     <Button Command="{Binding OpenAnalyticsCommand}" ToolTip="Аналитика"
-                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Visibility="{Binding CanUsePowerFeatures, Converter={StaticResource BoolToVis}}">
                         <materialDesign:PackIcon Kind="ChartBar" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding OpenOverdueReportCommand}" ToolTip="Просрочки по командам (для владельца)"
-                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Command="{Binding OpenOverdueReportCommand}" ToolTip="Просрочки по организации (владелец)"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Visibility="{Binding CanUsePowerFeatures, Converter={StaticResource BoolToVis}}">
                         <materialDesign:PackIcon Kind="ClockAlertOutline" Width="16" Height="16"/>
                     </Button>
                     <Button Command="{Binding ManageTeamsCommand}" ToolTip="Организация и команды"
@@ -165,7 +170,8 @@
                         <materialDesign:PackIcon Kind="AccountGroupOutline" Width="16" Height="16"/>
                     </Button>
                     <Button Command="{Binding OpenAIChatCommand}" ToolTip="AI помощник"
-                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Visibility="{Binding CanUsePowerFeatures, Converter={StaticResource BoolToVis}}">
                         <materialDesign:PackIcon Kind="RobotOutline" Width="16" Height="16"/>
                     </Button>
                     <Button Command="{Binding LogoutCommand}" ToolTip="Выйти"
@@ -219,7 +225,8 @@
                                 <TextBlock Text="{Binding TodoTasks.Count}" DockPanel.Dock="Right"
                                            Foreground="{StaticResource VsCodeForegroundMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 <Button Command="{Binding ClearTodoColumnCommand}" DockPanel.Dock="Right"
-                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку">
+                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку"
+                                        Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}">
                                     <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
                                 </Button>
                                 <TextBlock Text="Нужно сделать" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -268,7 +275,8 @@
                                 <TextBlock Text="{Binding InProgressTasks.Count}" DockPanel.Dock="Right"
                                            Foreground="{StaticResource VsCodeForegroundMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 <Button Command="{Binding ClearInProgressColumnCommand}" DockPanel.Dock="Right"
-                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку">
+                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку"
+                                        Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}">
                                     <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
                                 </Button>
                                 <TextBlock Text="В работе" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -317,7 +325,8 @@
                                 <TextBlock Text="{Binding DoneTasks.Count}" DockPanel.Dock="Right"
                                            Foreground="{StaticResource VsCodeForegroundMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 <Button Command="{Binding ClearDoneColumnCommand}" DockPanel.Dock="Right"
-                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку">
+                                        Style="{StaticResource VsCodeIconButton}" ToolTip="Очистить колонку"
+                                        Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}">
                                     <materialDesign:PackIcon Kind="DeleteOutline" Width="16" Height="16"/>
                                 </Button>
                                 <TextBlock Text="Готово" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -359,12 +368,21 @@
                            Text="Перетаскивайте карточки между колонками для смены статуса."
                            Foreground="{StaticResource VsCodeForegroundMuted}"
                            VerticalAlignment="Center"
-                           FontSize="12"/>
+                           FontSize="12"
+                           Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}"/>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="Вы участник организации: статус задач меняется только перетаскиванием. Создание и правка карточек недоступны."
+                           Foreground="{StaticResource VsCodeForegroundMuted}"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding ShowParticipantBoardHint, Converter={StaticResource BoolToVis}}"/>
                 <Button DockPanel.Dock="Right"
                         Content="Очистить все колонки"
                         Command="{Binding ClearAllColumnsCommand}"
                         Style="{StaticResource VsCodeSecondaryButton}"
-                        ToolTip="Удалит задачи в текущей области (личные или команда)"/>
+                        ToolTip="Удалит задачи в текущей области (личные или команда)"
+                        Visibility="{Binding CanModifyTasks, Converter={StaticResource BoolToVis}}"/>
             </DockPanel>
         </Border>
     </Grid>

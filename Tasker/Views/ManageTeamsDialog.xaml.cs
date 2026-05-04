@@ -25,6 +25,9 @@ namespace TaskManager.Views
 
         private void LoadData()
         {
+            // Сброс трекинга: иначе после создания организации в другом DbContext
+            // пользователь остаётся в памяти с OrganizationId = null и проверки «вступите в организацию» ломаются.
+            _context.ChangeTracker.Clear();
             LoadOrganization();
             LoadUserTeams();
             UpdateTeamFormState();
@@ -37,30 +40,68 @@ namespace TaskManager.Views
                 return;
             }
 
-            _myOrganization = _context.Organizations
-                .Include(o => o.Members)
-                .FirstOrDefault(o => o.Members.Any(m => m.Id == _authService.CurrentUser.Id));
+            var userId = _authService.CurrentUser.Id;
+            var orgId = _context.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.OrganizationId)
+                .FirstOrDefault();
+
+            _myOrganization = orgId == null
+                ? null
+                : _context.Organizations
+                    .Include(o => o.Members)
+                    .FirstOrDefault(o => o.Id == orgId.Value);
 
             if (_myOrganization != null)
             {
                 NoOrgPanel.Visibility = Visibility.Collapsed;
                 HasOrgPanel.Visibility = Visibility.Visible;
+                var isOwner = _myOrganization.OwnerId == userId;
                 OrganizationInfoText.Text =
                     $"Участников в организации: {_myOrganization.Members.Count}. " +
-                    "Любой участник может изменить название и описание; удаление — тоже у всех (будьте осторожны).";
+                    (isOwner
+                        ? "Как владелец вы управляете названием, командами и составом участников."
+                        : "Изменять организацию, создавать команды и приглашать людей может только владелец (отмечен на вкладке).");
                 OrgNameDisplay.Text = _myOrganization.Name;
                 OrgDescDisplay.Text = string.IsNullOrWhiteSpace(_myOrganization.Description)
                     ? "Без описания"
                     : _myOrganization.Description;
                 OrgNameEditBox.Text = _myOrganization.Name;
                 OrgDescEditBox.Text = _myOrganization.Description;
+                ApplyOrganizationRoleUi();
             }
             else
             {
                 NoOrgPanel.Visibility = Visibility.Visible;
                 HasOrgPanel.Visibility = Visibility.Collapsed;
                 _myOrganization = null;
+                OwnerRoleBadge.Visibility = Visibility.Collapsed;
+                ParticipantRoleHint.Visibility = Visibility.Collapsed;
+                PeopleOwnerPanel.Visibility = Visibility.Collapsed;
+                PeopleParticipantPanel.Visibility = Visibility.Collapsed;
+                LeaveOrganizationButton.Visibility = Visibility.Collapsed;
+                OwnerCannotLeaveOrgHint.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void ApplyOrganizationRoleUi()
+        {
+            if (_authService.CurrentUser == null || _myOrganization == null)
+            {
+                return;
+            }
+
+            var isOrgOwner = _myOrganization.OwnerId == _authService.CurrentUser.Id;
+            OwnerRoleBadge.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
+            ParticipantRoleHint.Visibility = isOrgOwner ? Visibility.Collapsed : Visibility.Visible;
+            EditOrgButton.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
+            ManageMembersButton.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
+            DeleteOrgButton.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
+            ManageMembersTabButton.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
+            PeopleOwnerPanel.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
+            PeopleParticipantPanel.Visibility = isOrgOwner ? Visibility.Collapsed : Visibility.Visible;
+            LeaveOrganizationButton.Visibility = isOrgOwner ? Visibility.Collapsed : Visibility.Visible;
+            OwnerCannotLeaveOrgHint.Visibility = isOrgOwner ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void LoadUserTeams()
@@ -85,8 +126,10 @@ namespace TaskManager.Views
         private void UpdateTeamFormState()
         {
             var hasOrg = _myOrganization != null;
-            TeamNameTextBox.IsEnabled = hasOrg;
-            TeamDescTextBox.IsEnabled = hasOrg;
+            var isOrgOwner = hasOrg && _authService.CurrentUser != null && _myOrganization!.OwnerId == _authService.CurrentUser.Id;
+            TeamNameTextBox.IsEnabled = isOrgOwner;
+            TeamDescTextBox.IsEnabled = isOrgOwner;
+            CreateTeamButton.IsEnabled = isOrgOwner;
         }
 
         private void CreateOrganization_Click(object sender, RoutedEventArgs e)
@@ -105,7 +148,21 @@ namespace TaskManager.Views
 
         private void ManageMembers_Click(object sender, RoutedEventArgs e) => OpenMembersDialog();
 
-        private void ManageMembersFromTab_Click(object sender, RoutedEventArgs e) => OpenMembersDialog();
+        private void ManageMembersFromTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (_myOrganization == null || _authService.CurrentUser == null ||
+                _myOrganization.OwnerId != _authService.CurrentUser.Id)
+            {
+                MessageBox.Show(
+                    "Управлять участниками может только владелец организации.",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            OpenMembersDialog();
+        }
 
         private void OpenMembersDialog()
         {
@@ -119,16 +176,26 @@ namespace TaskManager.Views
                 return;
             }
 
+            if (_authService.CurrentUser == null || _myOrganization.OwnerId != _authService.CurrentUser.Id)
+            {
+                MessageBox.Show(
+                    "Управлять участниками может только владелец организации.",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
             var membersDialog = new ManageMembersDialog(_authService, _myOrganization);
             membersDialog.Owner = this;
             membersDialog.ShowDialog();
-            LoadOrganization();
-            LoadUserTeams();
+            LoadData();
         }
 
         private void StartEditOrganization_Click(object sender, RoutedEventArgs e)
         {
-            if (_myOrganization == null)
+            if (_myOrganization == null || _authService.CurrentUser == null ||
+                _myOrganization.OwnerId != _authService.CurrentUser.Id)
             {
                 return;
             }
@@ -170,6 +237,67 @@ namespace TaskManager.Views
             MessageBox.Show("Изменения сохранены.", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        private void LeaveOrganization_Click(object sender, RoutedEventArgs e)
+        {
+            if (_myOrganization == null || _authService.CurrentUser == null)
+            {
+                return;
+            }
+
+            if (MessageBox.Show(
+                    "Покинуть организацию? Вы будете удалены из всех её команд.",
+                    "Подтверждение",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            if (!WorkspaceAdminService.TryLeaveOrganizationAsMember(
+                    _context,
+                    _authService.CurrentUser.Id,
+                    _myOrganization.Id,
+                    out var error))
+            {
+                MessageBox.Show(error, "Не удалось выйти", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _authService.RefreshCurrentUser();
+            LoadData();
+            MessageBox.Show("Вы вышли из организации.", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void LeaveTeam_Click(object sender, RoutedEventArgs e)
+        {
+            if (TeamsListBox.SelectedItem is not Team team || _authService.CurrentUser == null)
+            {
+                return;
+            }
+
+            if (MessageBox.Show(
+                    $"Покинуть команду «{team.Name}»?",
+                    "Подтверждение",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            if (!WorkspaceAdminService.TryLeaveTeam(_context, _authService.CurrentUser.Id, team.Id, out var error))
+            {
+                MessageBox.Show(error, "Не удалось выйти", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _authService.RefreshCurrentUser();
+            TeamDetailPanel.Visibility = Visibility.Collapsed;
+            TeamPickHint.Visibility = Visibility.Visible;
+            TeamsListBox.SelectedItem = null;
+            LoadData();
+            MessageBox.Show("Вы вышли из команды.", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         private void DeleteOrganization_Click(object sender, RoutedEventArgs e)
         {
             if (_myOrganization == null || _authService.CurrentUser == null)
@@ -195,6 +323,7 @@ namespace TaskManager.Views
                 return;
             }
 
+            _authService.RefreshCurrentUser();
             _myOrganization = null;
             LoadData();
             MessageBox.Show("Организация удалена.", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -221,15 +350,15 @@ namespace TaskManager.Views
             SelectedTeamNameBox.Text = teamTracked.Name;
             SelectedTeamDescBox.Text = teamTracked.Description;
 
-            var isOwner = teamTracked.OwnerId == _authService.CurrentUser.Id;
-            SaveTeamButton.IsEnabled = isOwner;
-            DeleteTeamButton.IsEnabled = isOwner;
-            SelectedTeamNameBox.IsEnabled = isOwner;
-            SelectedTeamDescBox.IsEnabled = isOwner;
+            var isOrgOwner = _myOrganization != null && _myOrganization.OwnerId == _authService.CurrentUser.Id;
+            SaveTeamButton.IsEnabled = isOrgOwner;
+            DeleteTeamButton.IsEnabled = isOrgOwner;
+            SelectedTeamNameBox.IsEnabled = isOrgOwner;
+            SelectedTeamDescBox.IsEnabled = isOrgOwner;
 
-            TeamOwnerHint.Text = isOwner
-                ? "Вы владелец: можно переименовать или удалить команду."
-                : "Вы участник: редактировать и удалять может только владелец.";
+            TeamOwnerHint.Text = isOrgOwner
+                ? "Как владелец организации вы можете переименовать или удалить любую команду."
+                : "Изменять и удалять команды может только владелец организации.";
         }
 
         private void SaveTeam_Click(object sender, RoutedEventArgs e)

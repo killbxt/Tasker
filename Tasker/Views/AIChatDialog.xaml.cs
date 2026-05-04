@@ -58,10 +58,13 @@ namespace TaskManager.Views
             using var db = new ApplicationDbContext();
             var userId = _authService.CurrentUser.Id;
 
-            var org = db.Organizations
-                .AsNoTracking()
-                .Include(o => o.Members)
-                .FirstOrDefault(o => o.Members.Any(m => m.Id == userId));
+            var orgId = db.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.OrganizationId)
+                .FirstOrDefault();
+            var org = orgId == null
+                ? null
+                : db.Organizations.AsNoTracking().FirstOrDefault(o => o.Id == orgId.Value);
 
             var teams = db.Teams
                 .AsNoTracking()
@@ -101,6 +104,19 @@ namespace TaskManager.Views
             if (_authService.CurrentUser == null)
             {
                 return;
+            }
+
+            using (var permCtx = new ApplicationDbContext())
+            {
+                if (!WorkspacePermissions.CanUsePowerFeatures(permCtx, _authService.CurrentUser.Id))
+                {
+                    _messages.Add(new ChatMessage
+                    {
+                        Text = "AI-чат доступен только владельцу организации.",
+                        IsUser = false
+                    });
+                    return;
+                }
             }
 
             var message = MessageTextBox.Text.Trim();
@@ -298,11 +314,15 @@ namespace TaskManager.Views
 
                 case "update_organization" when ai.organizationData != null:
                 {
-                    var org = db.Organizations
-                        .Include(o => o.Members)
-                        .FirstOrDefault(o => o.Members.Any(m => m.Id == uid));
+                    var userOrgId = db.Users.AsNoTracking()
+                        .Where(u => u.Id == uid)
+                        .Select(u => u.OrganizationId)
+                        .FirstOrDefault();
+                    var orgMeta = userOrgId == null
+                        ? null
+                        : db.Organizations.AsNoTracking().FirstOrDefault(o => o.Id == userOrgId.Value);
 
-                    if (org == null)
+                    if (orgMeta == null)
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -311,9 +331,9 @@ namespace TaskManager.Views
                         return true;
                     }
 
-                    var name = ai.organizationData.name ?? org.Name;
-                    var desc = ai.organizationData.description ?? org.Description;
-                    if (!WorkspaceAdminService.TryUpdateOrganization(db, uid, org.Id, name, desc, out var err))
+                    var name = ai.organizationData.name ?? orgMeta.Name;
+                    var desc = ai.organizationData.description ?? orgMeta.Description;
+                    if (!WorkspaceAdminService.TryUpdateOrganization(db, uid, orgMeta.Id, name, desc, out var err))
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -331,11 +351,15 @@ namespace TaskManager.Views
 
                 case "delete_organization":
                 {
-                    var org = db.Organizations
-                        .Include(o => o.Members)
-                        .FirstOrDefault(o => o.Members.Any(m => m.Id == uid));
+                    var userOrgId = db.Users.AsNoTracking()
+                        .Where(u => u.Id == uid)
+                        .Select(u => u.OrganizationId)
+                        .FirstOrDefault();
+                    var orgName = userOrgId == null
+                        ? null
+                        : db.Organizations.AsNoTracking().Where(o => o.Id == userOrgId.Value).Select(o => o.Name).FirstOrDefault();
 
-                    if (org == null)
+                    if (userOrgId == null || orgName == null)
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -348,7 +372,7 @@ namespace TaskManager.Views
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         confirm = MessageBox.Show(
-                            $"{ai.message}\n\nУдалить организацию «{org.Name}» без отката?",
+                            $"{ai.message}\n\nУдалить организацию «{orgName}» без отката?",
                             "Подтверждение",
                             MessageBoxButton.YesNo,
                             MessageBoxImage.Warning);
@@ -363,7 +387,7 @@ namespace TaskManager.Views
                         return true;
                     }
 
-                    if (!WorkspaceAdminService.TryDeleteOrganization(db, uid, org.Id, out var err))
+                    if (!WorkspaceAdminService.TryDeleteOrganization(db, uid, userOrgId.Value, out var err))
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -374,20 +398,21 @@ namespace TaskManager.Views
 
                     Application.Current.Dispatcher.Invoke(() =>
                     {
+                        _authService.RefreshCurrentUser();
                         _messages.Add(new ChatMessage { Text = "Организация удалена.", IsUser = false });
                         _viewModel.LoadTeams();
-                        _viewModel.LoadTasks();
                     });
                     return true;
                 }
 
                 case "create_team" when ai.teamData != null:
                 {
-                    var org = db.Organizations
-                        .Include(o => o.Members)
-                        .FirstOrDefault(o => o.Members.Any(m => m.Id == uid));
+                    var userOrgId = db.Users.AsNoTracking()
+                        .Where(u => u.Id == uid)
+                        .Select(u => u.OrganizationId)
+                        .FirstOrDefault();
 
-                    if (org == null)
+                    if (userOrgId == null)
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -399,7 +424,7 @@ namespace TaskManager.Views
                     if (!WorkspaceAdminService.TryCreateTeam(
                             db,
                             uid,
-                            org.Id,
+                            userOrgId.Value,
                             ai.teamData.name ?? "",
                             ai.teamData.description,
                             out _,
@@ -416,7 +441,6 @@ namespace TaskManager.Views
                     {
                         _messages.Add(new ChatMessage { Text = $"{ai.message}\n\nКоманда создана.", IsUser = false });
                         _viewModel.LoadTeams();
-                        _viewModel.LoadTasks();
                     });
                     return true;
                 }
@@ -442,7 +466,6 @@ namespace TaskManager.Views
                     {
                         _messages.Add(new ChatMessage { Text = $"{ai.message}\n\nКоманда обновлена.", IsUser = false });
                         _viewModel.LoadTeams();
-                        _viewModel.LoadTasks();
                     });
                     return true;
                 }
@@ -481,7 +504,6 @@ namespace TaskManager.Views
                     {
                         _messages.Add(new ChatMessage { Text = "Команда удалена.", IsUser = false });
                         _viewModel.LoadTeams();
-                        _viewModel.LoadTasks();
                     });
                     return true;
                 }

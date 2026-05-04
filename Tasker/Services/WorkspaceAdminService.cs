@@ -20,9 +20,9 @@ namespace TaskManager.Services
                 return false;
             }
 
-            if (!org.Members.Any(m => m.Id == userId))
+            if (!db.Organizations.AsNoTracking().Any(o => o.Id == orgId && o.OwnerId == userId))
             {
-                error = "Вы не состоите в этой организации.";
+                error = "Изменять организацию может только её владелец.";
                 return false;
             }
 
@@ -52,9 +52,9 @@ namespace TaskManager.Services
                 return false;
             }
 
-            if (!org.Members.Any(m => m.Id == userId))
+            if (!db.Organizations.AsNoTracking().Any(o => o.Id == orgId && o.OwnerId == userId))
             {
-                error = "Вы не состоите в этой организации.";
+                error = "Удалять организацию может только её владелец.";
                 return false;
             }
 
@@ -92,11 +92,25 @@ namespace TaskManager.Services
             team = null;
             error = "";
 
-            var user = db.Users.FirstOrDefault(u => u.Id == userId);
-            if (user == null || user.OrganizationId != orgId)
+            var userOrgId = db.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.OrganizationId)
+                .FirstOrDefault();
+            if (userOrgId != orgId)
             {
                 error = "Сначала вступите в эту организацию.";
                 return false;
+            }
+
+            if (!db.Organizations.AsNoTracking().Any(o => o.Id == orgId && o.OwnerId == userId))
+            {
+                error = "Создавать команды может только владелец организации.";
+                return false;
+            }
+
+            foreach (var entry in db.ChangeTracker.Entries<User>().Where(e => e.Entity.Id == userId).ToList())
+            {
+                entry.State = EntityState.Detached;
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -133,9 +147,9 @@ namespace TaskManager.Services
                 return false;
             }
 
-            if (team.OwnerId != userId)
+            if (!db.Organizations.AsNoTracking().Any(o => o.Id == team.OrganizationId && o.OwnerId == userId))
             {
-                error = "Редактировать может только владелец команды.";
+                error = "Изменять команду может только владелец организации.";
                 return false;
             }
 
@@ -161,9 +175,9 @@ namespace TaskManager.Services
                 return false;
             }
 
-            if (team.OwnerId != userId)
+            if (!db.Organizations.AsNoTracking().Any(o => o.Id == team.OrganizationId && o.OwnerId == userId))
             {
-                error = "Удалить может только владелец команды.";
+                error = "Удалять команду может только владелец организации.";
                 return false;
             }
 
@@ -175,6 +189,97 @@ namespace TaskManager.Services
 
             db.SaveChanges();
             db.Teams.Remove(team);
+            db.SaveChanges();
+            return true;
+        }
+
+        /// <summary>Покинуть команду: капитаном становится владелец организации.</summary>
+        public static bool TryLeaveTeam(ApplicationDbContext db, int userId, int teamId, out string error)
+        {
+            error = "";
+            var team = db.Teams.Include(t => t.Members).FirstOrDefault(t => t.Id == teamId);
+            if (team == null)
+            {
+                error = "Команда не найдена.";
+                return false;
+            }
+
+            var member = team.Members.FirstOrDefault(m => m.Id == userId);
+            if (member == null)
+            {
+                error = "Вы не состоите в этой команде.";
+                return false;
+            }
+
+            if (team.OwnerId == userId)
+            {
+                var orgOwnerId = db.Organizations.AsNoTracking()
+                    .Where(o => o.Id == team.OrganizationId)
+                    .Select(o => o.OwnerId)
+                    .FirstOrDefault();
+                if (orgOwnerId == 0)
+                {
+                    error = "Не удалось определить владельца организации.";
+                    return false;
+                }
+
+                team.OwnerId = orgOwnerId;
+            }
+
+            team.Members.Remove(member);
+            db.SaveChanges();
+            return true;
+        }
+
+        /// <summary>Покинуть организацию (только не владелец). Убирает из всех команд этой организации.</summary>
+        public static bool TryLeaveOrganizationAsMember(ApplicationDbContext db, int userId, int orgId, out string error)
+        {
+            error = "";
+            if (db.Organizations.AsNoTracking().Any(o => o.Id == orgId && o.OwnerId == userId))
+            {
+                error = "Владелец не может выйти из организации без её полного удаления.";
+                return false;
+            }
+
+            var user = db.Users.Include(u => u.Teams).FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+            {
+                error = "Пользователь не найден.";
+                return false;
+            }
+
+            if (user.OrganizationId != orgId)
+            {
+                error = "Вы не состоите в этой организации.";
+                return false;
+            }
+
+            var orgOwnerId = db.Organizations.AsNoTracking()
+                .Where(o => o.Id == orgId)
+                .Select(o => o.OwnerId)
+                .FirstOrDefault();
+            if (orgOwnerId == 0)
+            {
+                error = "Организация не найдена.";
+                return false;
+            }
+
+            foreach (var t in user.Teams.Where(t => t.OrganizationId == orgId).ToList())
+            {
+                var teamEntity = db.Teams.Include(tm => tm.Members).First(tm => tm.Id == t.Id);
+                var m = teamEntity.Members.FirstOrDefault(x => x.Id == userId);
+                if (m != null)
+                {
+                    teamEntity.Members.Remove(m);
+                }
+
+                if (teamEntity.OwnerId == userId)
+                {
+                    teamEntity.OwnerId = orgOwnerId;
+                }
+            }
+
+            user.OrganizationId = null;
             db.SaveChanges();
             return true;
         }

@@ -63,5 +63,26 @@ namespace TaskManager.Services
         {
             _currentUser = null;
         }
+
+        /// <summary>Перечитать текущего пользователя из БД (например после смены организации).</summary>
+        public void RefreshCurrentUser()
+        {
+            if (_currentUser == null)
+            {
+                return;
+            }
+
+            var id = _currentUser.Id;
+            _context.ChangeTracker.Clear();
+            var user = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Organization)
+                .FirstOrDefault(u => u.Id == id);
+
+            if (user != null)
+            {
+                _currentUser = user;
+            }
+        }
     }
 }

@@ -31,7 +31,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button ToolTip="Новая личная задача"
+                    <Button x:Name="ProfileAddTaskButton" ToolTip="Новая личная задача"
                             Click="AddTask_Click"
                             Style="{StaticResource VsCodeIconButton}"
                             Margin="0,0,4,0">
@@ -68,11 +68,11 @@
                 Padding="8,10"
                 Margin="0,4,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Редактировать"
+                <Button x:Name="ProfileEditTaskButton" Content="Редактировать"
                         Click="EditTask_Click"
                         Margin="0,0,8,0"
                         Style="{StaticResource VsCodeSecondaryButton}"/>
-                <Button Content="Удалить"
+                <Button x:Name="ProfileDeleteTaskButton" Content="Удалить"
                         Click="DeleteTask_Click"
                         Margin="0,0,8,0"
                         Style="{StaticResource VsCodeSecondaryButton}"/>

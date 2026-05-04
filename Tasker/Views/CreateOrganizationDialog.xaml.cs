@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Microsoft.EntityFrameworkCore;
 using TaskManager.Data;
 using TaskManager.Models;
 using TaskManager.Services;
@@ -25,24 +26,44 @@ namespace TaskManager.Views
                 return;
             }
 
+            if (_authService.CurrentUser == null)
+            {
+                MessageBox.Show("Не удалось определить пользователя.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var ownerId = _authService.CurrentUser.Id;
+            var existingOrgId = _context.Users.AsNoTracking()
+                .Where(u => u.Id == ownerId)
+                .Select(u => u.OrganizationId)
+                .FirstOrDefault();
+            if (existingOrgId != null)
+            {
+                MessageBox.Show(
+                    "Вы уже состоите в организации. Сначала покиньте её: «Организация и команды» → «Покинуть организацию».",
+                    "Уже в организации",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
             var organization = new Organization
             {
                 Name = OrgNameTextBox.Text,
                 Description = OrgDescTextBox.Text,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                OwnerId = ownerId
             };
 
             _context.Organizations.Add(organization);
             _context.SaveChanges();
 
-            if (_authService.CurrentUser != null)
+            var user = _context.Users.Find(ownerId);
+            if (user != null)
             {
-                var user = _context.Users.Find(_authService.CurrentUser.Id);
-                if (user != null)
-                {
-                    user.OrganizationId = organization.Id;
-                    _context.SaveChanges();
-                }
+                user.OrganizationId = organization.Id;
+                _context.SaveChanges();
+                _authService.RefreshCurrentUser();
             }
 
             DialogResult = true;

@@ -37,11 +37,20 @@ namespace TaskManager.Views
             UsernameText.Text = user.Username;
             EmailText.Text = user.Email;
 
-            var org = _context.Organizations
-                .Include(o => o.Members)
-                .FirstOrDefault(o => o.Members.Any(m => m.Id == user.Id));
+            var orgId = _context.Users.AsNoTracking()
+                .Where(u => u.Id == user.Id)
+                .Select(u => u.OrganizationId)
+                .FirstOrDefault();
+            var orgName = orgId == null
+                ? null
+                : _context.Organizations.AsNoTracking().Where(o => o.Id == orgId.Value).Select(o => o.Name).FirstOrDefault();
 
-            OrgText.Text = org != null ? $"Организация: {org.Name}" : "Организация: нет";
+            OrgText.Text = orgName != null ? $"Организация: {orgName}" : "Организация: нет";
+
+            var canEditTasks = WorkspacePermissions.CanModifyPersonalTasks(user.Id);
+            ProfileAddTaskButton.Visibility = canEditTasks ? Visibility.Visible : Visibility.Collapsed;
+            ProfileEditTaskButton.Visibility = canEditTasks ? Visibility.Visible : Visibility.Collapsed;
+            ProfileDeleteTaskButton.Visibility = canEditTasks ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void LoadTasks()
@@ -82,7 +91,7 @@ namespace TaskManager.Views
         private void AddTask_Click(object sender, RoutedEventArgs e)
         {
             var user = _authService.CurrentUser;
-            if (user == null)
+            if (user == null || !WorkspacePermissions.CanModifyPersonalTasks(user.Id))
             {
                 return;
             }
@@ -109,7 +118,7 @@ namespace TaskManager.Views
             }
 
             var user = _authService.CurrentUser;
-            if (user == null)
+            if (user == null || !WorkspacePermissions.CanModifyPersonalTasks(user.Id))
             {
                 return;
             }
@@ -146,6 +155,12 @@ namespace TaskManager.Views
         private void DeleteTask_Click(object sender, RoutedEventArgs e)
         {
             if (TasksGrid.SelectedItem is not TaskViewModel taskVm)
+            {
+                return;
+            }
+
+            if (_authService.CurrentUser == null ||
+                !WorkspacePermissions.CanModifyPersonalTasks(_authService.CurrentUser.Id))
             {
                 return;
             }

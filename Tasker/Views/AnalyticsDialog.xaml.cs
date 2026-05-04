@@ -19,6 +19,18 @@ namespace TaskManager.Views
             _selectedTeam = selectedTeam;
             _context = new ApplicationDbContext();
 
+            if (_authService.CurrentUser == null ||
+                !WorkspacePermissions.CanUsePowerFeatures(_context, _authService.CurrentUser.Id))
+            {
+                MessageBox.Show(
+                    "Аналитика доступна только владельцу организации.",
+                    "Нет доступа",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                Close();
+                return;
+            }
+
             LoadAnalytics();
         }
 
