@@ -57,44 +57,57 @@ namespace TaskManager.Views
                 return;
             }
 
-            // Проверяем, существует ли пользователь
-            var user = _context.Users.FirstOrDefault(u => u.Email == EmailTextBox.Text);
+            var email = EmailTextBox.Text.Trim();
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null)
             {
                 MessageBox.Show("Пользователь с таким email не найден", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Проверяем, не состоит ли уже в организации
-            if (user.OrganizationId == _currentOrganization.Id)
+            // No confirmations/tokens: add user immediately.
+            user.OrganizationId = _currentOrganization.Id;
+
+            string teamMessage = "";
+            if (TeamComboBox.SelectedItem is Team selectedTeam)
             {
-                MessageBox.Show("Пользователь уже состоит в этой организации", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                var team = _context.Teams
+                    .Include(t => t.Members)
+                    .FirstOrDefault(t => t.Id == selectedTeam.Id);
+
+                if (team != null && !team.Members.Any(m => m.Id == user.Id))
+                {
+                    team.Members.Add(user);
+                    teamMessage = $" и в команду {team.Name}";
+                }
             }
 
-            // Создаем инвайт
-            var invitation = new Invitation
-            {
-                Email = EmailTextBox.Text,
-                OrganizationId = _currentOrganization.Id,
-                TeamId = (TeamComboBox.SelectedItem as Team)?.Id,
-                InvitedById = _authService.CurrentUser!.Id,
-                ExpiresAt = DateTime.Now.AddDays(7)
-            };
-
-            _context.Invitations.Add(invitation);
             await _context.SaveChangesAsync();
 
-            MessageBox.Show($"Приглашение отправлено на {EmailTextBox.Text}\n\nТокен: {invitation.Token}",
-                "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"Пользователь добавлен в организацию{teamMessage}.",
+                "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
 
             EmailTextBox.Text = "";
             TeamComboBox.SelectedItem = null;
+            LoadMembers();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void OpenProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (MembersListBox.SelectedItem is not User member)
+            {
+                MessageBox.Show("Выберите участника", "Профиль", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var dialog = new UserProfileDialog(member.Id);
+            dialog.Owner = this;
+            dialog.ShowDialog();
         }
     }
 }

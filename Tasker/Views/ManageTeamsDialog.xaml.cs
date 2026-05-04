@@ -42,14 +42,12 @@ namespace TaskManager.Views
                     OrganizationInfoText.Text = $"Организация: {_myOrganization.Name}\nУчастников: {_myOrganization.Members.Count}";
                     CreateOrgButton.Visibility = Visibility.Collapsed;
                     ManageMembersButton.Visibility = Visibility.Visible;
-                    AcceptInviteButton.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    OrganizationInfoText.Text = "У вас нет организации. Создайте или примите приглашение.";
+                    OrganizationInfoText.Text = "У вас нет организации. Создайте организацию, чтобы начать.";
                     CreateOrgButton.Visibility = Visibility.Visible;
                     ManageMembersButton.Visibility = Visibility.Collapsed;
-                    AcceptInviteButton.Visibility = Visibility.Visible;
                 }
             }
         }
@@ -87,21 +85,7 @@ namespace TaskManager.Views
             {
                 var membersDialog = new ManageMembersDialog(_authService, _myOrganization);
                 membersDialog.ShowDialog();
-                LoadOrganization(); // Обновляем информацию об участниках
-            }
-        }
-
-        private void AcceptInvitation_Click(object sender, RoutedEventArgs e)
-        {
-            var acceptDialog = new AcceptInvitationDialog(_authService);
-            if (acceptDialog.ShowDialog() == true)
-            {
-                LoadData();
-                // Обновляем главное окно
-                if (Application.Current.MainWindow is MainWindow mainWindow)
-                {
-                    mainWindow.RefreshData();
-                }
+                LoadOrganization();
             }
         }
 
@@ -123,13 +107,13 @@ namespace TaskManager.Views
             {
                 Name = TeamNameTextBox.Text,
                 Description = TeamDescTextBox.Text,
-                OrganizationId = _myOrganization.Id
+                OrganizationId = _myOrganization.Id,
+                OwnerId = _authService.CurrentUser!.Id
             };
 
             _context.Teams.Add(team);
             _context.SaveChanges();
 
-            // Добавляем текущего пользователя в команду
             if (_authService.CurrentUser != null)
             {
                 var user = _context.Users.Find(_authService.CurrentUser.Id);

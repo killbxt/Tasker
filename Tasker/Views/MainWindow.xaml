@@ -42,19 +42,23 @@
 
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                         <materialDesign:PackIcon Kind="CalendarClock" Width="14" Height="14"/>
-                        <TextBlock Text="{Binding DueDate, StringFormat='dd.MM.yyyy'}" 
+                        <TextBlock Text="{Binding PlannedWindowText}" 
                                    FontSize="11" Margin="4,0,0,0"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <Button Content="✏️" Width="30" Height="30" 
+                        <Button Width="30" Height="30"
                                 Command="{Binding DataContext.EditTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                 CommandParameter="{Binding}"
-                                Style="{StaticResource MaterialDesignToolButton}"/>
-                        <Button Content="🗑️" Width="30" Height="30" 
+                                Style="{StaticResource MaterialDesignToolButton}">
+                            <materialDesign:PackIcon Kind="Pencil" Width="18" Height="18"/>
+                        </Button>
+                        <Button Width="30" Height="30"
                                 Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                 CommandParameter="{Binding}"
-                                Style="{StaticResource MaterialDesignToolButton}"/>
+                                Style="{StaticResource MaterialDesignToolButton}">
+                            <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
+                        </Button>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -84,8 +88,8 @@
 
                 <!-- Центр - поиск и фильтры -->
                 <WrapPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <ComboBox ItemsSource="{Binding UserTeams}"
-                              SelectedItem="{Binding SelectedTeam}"
+                    <ComboBox ItemsSource="{Binding TeamFilters}"
+                              SelectedItem="{Binding SelectedTeamFilter}"
                               DisplayMemberPath="Name"
                               Width="160"
                               materialDesign:HintAssist.Hint="Команда"
@@ -101,32 +105,52 @@
 
                 <!-- Действия -->
                 <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
-                    <Button Content="➕" 
-                            Command="{Binding AddTaskCommand}"
+                    <Button Command="{Binding AddTaskCommand}"
                             ToolTip="Новая задача"
                             Width="36" Height="36"
                             Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}"/>
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Plus" Width="20" Height="20"/>
+                    </Button>
 
-                    <Button Content="👥" 
-                            Command="{Binding ManageTeamsCommand}"
+                    <Button Command="{Binding OpenProfileCommand}"
+                            ToolTip="Профиль"
+                            Width="36" Height="36"
+                            Margin="0,0,4,0"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="AccountCircle" Width="20" Height="20"/>
+                    </Button>
+
+                    <Button Command="{Binding OpenAnalyticsCommand}"
+                            ToolTip="Аналитика"
+                            Width="36" Height="36"
+                            Margin="0,0,4,0"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="ChartBar" Width="20" Height="20"/>
+                    </Button>
+
+                    <Button Command="{Binding ManageTeamsCommand}"
                             ToolTip="Команды"
                             Width="36" Height="36"
                             Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}"/>
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="AccountGroup" Width="20" Height="20"/>
+                    </Button>
 
-                    <Button Content="🤖" 
-                            Command="{Binding OpenAIChatCommand}"
+                    <Button Command="{Binding OpenAIChatCommand}"
                             ToolTip="AI помощник"
                             Width="36" Height="36"
                             Margin="0,0,4,0"
-                            Style="{StaticResource MaterialDesignToolButton}"/>
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Robot" Width="20" Height="20"/>
+                    </Button>
 
-                    <Button Content="🚪" 
-                            Command="{Binding LogoutCommand}"
+                    <Button Command="{Binding LogoutCommand}"
                             ToolTip="Выйти"
                             Width="36" Height="36"
-                            Style="{StaticResource MaterialDesignToolButton}"/>
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Logout" Width="20" Height="20"/>
+                    </Button>
                 </WrapPanel>
             </Grid>
         </Border>
@@ -151,7 +175,9 @@
                     <Border Grid.Row="0" Background="#FF5722" CornerRadius="12,12,0,0" Padding="12,8">
                         <DockPanel>
                             <TextBlock Text="Нужно сделать" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
-                            <Button Content="🗑️" Command="{Binding ClearTodoColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку"/>
+                            <Button Command="{Binding ClearTodoColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку">
+                                <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
+                            </Button>
                             <TextBlock Text="{Binding TodoTasks.Count}" DockPanel.Dock="Right" Margin="8,0,8,0"/>
                         </DockPanel>
                     </Border>
@@ -190,7 +216,9 @@
                     <Border Grid.Row="0" Background="#2196F3" CornerRadius="12,12,0,0" Padding="12,8">
                         <DockPanel>
                             <TextBlock Text="В работе" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
-                            <Button Content="🗑️" Command="{Binding ClearInProgressColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку"/>
+                            <Button Command="{Binding ClearInProgressColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку">
+                                <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
+                            </Button>
                             <TextBlock Text="{Binding InProgressTasks.Count}" DockPanel.Dock="Right" Margin="8,0,8,0"/>
                         </DockPanel>
                     </Border>
@@ -227,8 +255,10 @@
 
                     <Border Grid.Row="0" Background="#4CAF50" CornerRadius="12,12,0,0" Padding="12,8">
                         <DockPanel>
-                            <TextBlock Text="✅ Готово" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
-                            <Button Content="🗑️" Command="{Binding ClearDoneColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку"/>
+                            <TextBlock Text="Готово" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"/>
+                            <Button Command="{Binding ClearDoneColumnCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Очистить колонку">
+                                <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
+                            </Button>
                             <TextBlock Text="{Binding DoneTasks.Count}" DockPanel.Dock="Right" Margin="8,0,8,0"/>
                         </DockPanel>
                     </Border>
@@ -256,12 +286,11 @@
             </Border>
         </Grid>
 
-        <!-- Кнопка очистки всех колонок -->
-        <Button Content="🗑️ Очистить всё"
+        <Button Content="Очистить всё"
                 Command="{Binding ClearAllColumnsCommand}"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                Margin="1057,0,0,0"
+                Margin="1001,0,0,0"
                 Style="{StaticResource MaterialDesignOutlinedButton}"
                 Height="36"
                 ToolTip="Очистить все колонки"/>

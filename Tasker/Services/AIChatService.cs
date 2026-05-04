@@ -28,23 +28,25 @@ namespace TaskManager.Services
                 t.Description,
                 Status = t.Status.ToString(),
                 Priority = t.Priority.ToString(),
-                DueDate = t.DueDate.ToString("yyyy-MM-dd")
+                PlannedStartAt = t.PlannedStartAt?.ToString("yyyy-MM-ddTHH:mm"),
+                PlannedEndAt = t.PlannedEndAt.ToString("yyyy-MM-ddTHH:mm")
             }));
 
             var systemPrompt = $@"Ты помощник в управлении задачами. Текущие задачи пользователя: {tasksJson}
 
-Ответь строго в формате JSON без лишнего текста:
-{{
-    ""action"": ""create|update|delete|none"",
-    ""taskId"": число или null,
-    ""taskData"": {{
-        ""title"": ""название задачи"",
-        ""description"": ""описание"",
-        ""dueDate"": ""2024-12-31"",
-        ""priority"": ""Urgent|Normal""
-    }},
-    ""message"": ""текст ответа пользователю""
-}}";
+                Ответь строго в формате JSON без лишнего текста:
+                {{
+                    ""action"": ""create|update|delete|none"",
+                    ""taskId"": число или null,
+                    ""taskData"": {{
+                        ""title"": ""название задачи"",
+                        ""description"": ""описание"",
+                        ""plannedStartAt"": ""2024-12-31T09:00"",
+                        ""plannedEndAt"": ""2024-12-31T18:00"",
+                        ""priority"": ""Urgent|Normal""
+                    }},
+                    ""message"": ""текст ответа пользователю""
+                }}";
 
             var requestBody = new
             {
@@ -62,7 +64,6 @@ namespace TaskManager.Services
                 var response = await _httpClient.PostAsync(url, content);
                 var responseString = await response.Content.ReadAsStringAsync();
 
-                // Парсим ответ от API
                 using var doc = JsonDocument.Parse(responseString);
                 var root = doc.RootElement;
 

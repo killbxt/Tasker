@@ -54,7 +54,6 @@ namespace TaskManager.Services
 
         private TaskState GetTargetStatus(IDropInfo dropInfo)
         {
-            // Отладочная информация
             System.Diagnostics.Debug.WriteLine($"VisualTarget Type: {dropInfo.VisualTarget?.GetType()}");
             System.Diagnostics.Debug.WriteLine($"VisualTarget Name: {(dropInfo.VisualTarget as FrameworkElement)?.Name}");
 
@@ -80,7 +79,6 @@ namespace TaskManager.Services
                 target = VisualTreeHelper.GetParent(target);
             }
 
-            // Если не нашли, пробуем альтернативный метод
             if (dropInfo.VisualTarget is ItemsControl itemsControl)
             {
                 switch (itemsControl.Name)

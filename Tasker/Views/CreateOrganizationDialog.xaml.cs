@@ -35,7 +35,6 @@ namespace TaskManager.Views
             _context.Organizations.Add(organization);
             _context.SaveChanges();
 
-            // Добавляем текущего пользователя как владельца
             if (_authService.CurrentUser != null)
             {
                 var user = _context.Users.Find(_authService.CurrentUser.Id);

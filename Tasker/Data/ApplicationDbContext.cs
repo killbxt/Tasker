@@ -9,7 +9,6 @@ namespace TaskManager.Data
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<Models.Task> Tasks { get; set; }
-        public DbSet<Invitation> Invitations { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -31,6 +30,12 @@ namespace TaskManager.Data
                 .WithMany(o => o.Teams)
                 .HasForeignKey(t => t.OrganizationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Team>()
+                .HasOne(t => t.Owner)
+                .WithMany()
+                .HasForeignKey(t => t.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Models.Task>()
                 .HasOne(t => t.CreatedBy)

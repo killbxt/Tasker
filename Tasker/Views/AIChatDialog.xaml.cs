@@ -2,10 +2,9 @@
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
+using TaskManager.Models;
 using TaskManager.Services;
 using TaskManager.ViewModels;
-using TaskManager.Models;
 
 namespace TaskManager.Views
 {
@@ -13,7 +12,7 @@ namespace TaskManager.Views
     {
         private readonly AIChatService _aiService;
         private readonly MainViewModel _viewModel;
-        private ObservableCollection<ChatMessage> _messages;
+        private readonly ObservableCollection<ChatMessage> _messages;
 
         public AIChatDialog(MainViewModel viewModel)
         {
@@ -47,28 +46,36 @@ namespace TaskManager.Views
         {
             var message = MessageTextBox.Text.Trim();
             if (string.IsNullOrEmpty(message))
+            {
                 return;
+            }
 
             _messages.Add(new ChatMessage { Text = message, IsUser = true });
             MessageTextBox.Clear();
 
-            // Добавляем индикатор загрузки
             var loadingMsg = new ChatMessage { Text = "🤔 Думаю...", IsUser = false, IsLoading = true };
             _messages.Add(loadingMsg);
-            await System.Threading.Tasks.Task.Delay(100); // Даем UI обновиться
+            await System.Threading.Tasks.Task.Delay(100);
             ScrollToBottom();
 
             var tasks = new System.Collections.Generic.List<Models.Task>();
             foreach (var taskVm in _viewModel.TodoTasks)
+            {
                 tasks.Add(taskVm.Task);
+            }
+
             foreach (var taskVm in _viewModel.InProgressTasks)
+            {
                 tasks.Add(taskVm.Task);
+            }
+
             foreach (var taskVm in _viewModel.DoneTasks)
+            {
                 tasks.Add(taskVm.Task);
+            }
 
             var response = await _aiService.SendMessageAsync(message, tasks);
 
-            // Удаляем индикатор загрузки
             Application.Current.Dispatcher.Invoke(() =>
             {
                 _messages.Remove(loadingMsg);
@@ -76,7 +83,6 @@ namespace TaskManager.Views
 
             try
             {
-                // Пробуем найти JSON в ответе
                 var jsonStart = response.IndexOf('{');
                 var jsonEnd = response.LastIndexOf('}');
                 if (jsonStart >= 0 && jsonEnd > jsonStart)
@@ -92,7 +98,8 @@ namespace TaskManager.Views
                             {
                                 Title = aiResponse.taskData.title ?? "Новая задача",
                                 Description = aiResponse.taskData.description ?? "",
-                                DueDate = DateTime.TryParse(aiResponse.taskData.dueDate, out var date) ? date : DateTime.Now.AddDays(7),
+                                PlannedStartAt = DateTime.TryParse(aiResponse.taskData.plannedStartAt, out var startAt) ? startAt : null,
+                                PlannedEndAt = DateTime.TryParse(aiResponse.taskData.plannedEndAt, out var endAt) ? endAt : DateTime.Now.AddDays(7),
                                 Priority = aiResponse.taskData.priority == "Urgent" ? TaskPriority.Urgent : TaskPriority.Normal,
                                 Status = TaskState.Todo,
                                 CreatedAt = DateTime.Now
@@ -109,13 +116,29 @@ namespace TaskManager.Views
                             if (taskToUpdate != null && aiResponse.taskData != null)
                             {
                                 if (!string.IsNullOrEmpty(aiResponse.taskData.title))
+                                {
                                     taskToUpdate.Title = aiResponse.taskData.title;
+                                }
+
                                 if (!string.IsNullOrEmpty(aiResponse.taskData.description))
+                                {
                                     taskToUpdate.Description = aiResponse.taskData.description;
+                                }
+
                                 if (aiResponse.taskData.priority != null)
+                                {
                                     taskToUpdate.Priority = aiResponse.taskData.priority == "Urgent" ? TaskPriority.Urgent : TaskPriority.Normal;
-                                if (!string.IsNullOrEmpty(aiResponse.taskData.dueDate) && DateTime.TryParse(aiResponse.taskData.dueDate, out var newDate))
-                                    taskToUpdate.DueDate = newDate;
+                                }
+
+                                if (!string.IsNullOrEmpty(aiResponse.taskData.plannedStartAt) && DateTime.TryParse(aiResponse.taskData.plannedStartAt, out var newStartAt))
+                                {
+                                    taskToUpdate.PlannedStartAt = newStartAt;
+                                }
+
+                                if (!string.IsNullOrEmpty(aiResponse.taskData.plannedEndAt) && DateTime.TryParse(aiResponse.taskData.plannedEndAt, out var newEndAt))
+                                {
+                                    taskToUpdate.PlannedEndAt = newEndAt;
+                                }
 
                                 _viewModel.UpdateTask(taskToUpdate);
                                 Application.Current.Dispatcher.Invoke(() =>
@@ -189,11 +212,29 @@ namespace TaskManager.Views
         private TaskViewModel? FindTaskById(int id)
         {
             foreach (var task in _viewModel.TodoTasks)
-                if (task.Id == id) return task;
+            {
+                if (task.Id == id)
+                {
+                    return task;
+                }
+            }
+
             foreach (var task in _viewModel.InProgressTasks)
-                if (task.Id == id) return task;
+            {
+                if (task.Id == id)
+                {
+                    return task;
+                }
+            }
+
             foreach (var task in _viewModel.DoneTasks)
-                if (task.Id == id) return task;
+            {
+                if (task.Id == id)
+                {
+                    return task;
+                }
+            }
+
             return null;
         }
 
@@ -227,7 +268,8 @@ namespace TaskManager.Views
     {
         public string? title { get; set; }
         public string? description { get; set; }
-        public string? dueDate { get; set; }
+        public string? plannedStartAt { get; set; }
+        public string? plannedEndAt { get; set; }
         public string? priority { get; set; }
     }
 }

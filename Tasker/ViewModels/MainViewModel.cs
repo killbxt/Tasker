@@ -19,7 +19,7 @@ namespace TaskManager.ViewModels
         public ObservableCollection<TaskViewModel> TodoTasks { get; set; } = new();
         public ObservableCollection<TaskViewModel> InProgressTasks { get; set; } = new();
         public ObservableCollection<TaskViewModel> DoneTasks { get; set; } = new();
-        public ObservableCollection<Team> UserTeams { get; set; } = new();
+        public ObservableCollection<TeamFilterItem> TeamFilters { get; set; } = new();
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -33,19 +33,18 @@ namespace TaskManager.ViewModels
             }
         }
 
-        private Team? _selectedTeam;
-        public Team? SelectedTeam
+        private TeamFilterItem? _selectedTeamFilter;
+        public TeamFilterItem? SelectedTeamFilter
         {
-            get => _selectedTeam;
+            get => _selectedTeamFilter;
             set
             {
-                _selectedTeam = value;
+                _selectedTeamFilter = value;
                 OnPropertyChanged();
                 LoadTasks();
             }
         }
 
-        // Команды
         public ICommand AddTaskCommand { get; set; }
         public ICommand EditTaskCommand { get; set; }
         public ICommand DeleteTaskCommand { get; set; }
@@ -54,6 +53,8 @@ namespace TaskManager.ViewModels
         public ICommand ClearDoneColumnCommand { get; set; }
         public ICommand ClearAllColumnsCommand { get; set; }
         public ICommand OpenAIChatCommand { get; set; }
+        public ICommand OpenProfileCommand { get; set; }
+        public ICommand OpenAnalyticsCommand { get; set; }
         public ICommand LogoutCommand { get; set; }
         public ICommand ManageTeamsCommand { get; set; }
         public MainViewModel(AuthService authService)
@@ -61,7 +62,6 @@ namespace TaskManager.ViewModels
             _context = new ApplicationDbContext();
             _authService = authService;
 
-            // Инициализация команд с заглушками
             AddTaskCommand = new RelayCommand(() => { });
             EditTaskCommand = new RelayCommand<object>((p) => { });
             DeleteTaskCommand = new RelayCommand<object>((p) => { });
@@ -70,6 +70,8 @@ namespace TaskManager.ViewModels
             ClearDoneColumnCommand = new RelayCommand(() => { });
             ClearAllColumnsCommand = new RelayCommand(() => { });
             OpenAIChatCommand = new RelayCommand(() => { });
+            OpenProfileCommand = new RelayCommand(() => { });
+            OpenAnalyticsCommand = new RelayCommand(() => { });
             LogoutCommand = new RelayCommand(() => { });
             ManageTeamsCommand = new RelayCommand(ManageTeams);
             DropHandler = new DropHandler(this);
@@ -81,8 +83,8 @@ namespace TaskManager.ViewModels
         {
             var dialog = new ManageTeamsDialog(_authService);
             dialog.ShowDialog();
-            LoadTeams(); // Обновляем список команд
-            LoadTasks(); // Обновляем задачи
+            LoadTeams();
+            LoadTasks();
         }
 
         public void LoadTeams()
@@ -91,15 +93,24 @@ namespace TaskManager.ViewModels
             {
                 var currentUserId = _authService.CurrentUser.Id;
                 var teams = _context.Teams
+                    .Include(t => t.Owner)
                     .Include(t => t.Members)
                     .Where(t => t.Members.Any(m => m.Id == currentUserId))
                     .ToList();
 
-                UserTeams.Clear();
-                foreach (var team in teams)
+                var previousSelectedTeamId = SelectedTeamFilter?.Team?.Id;
+
+                TeamFilters.Clear();
+                TeamFilters.Add(new TeamFilterItem { Name = "Личные задачи", Team = null });
+                foreach (var team in teams.OrderBy(t => t.Name))
                 {
-                    UserTeams.Add(team);
+                    TeamFilters.Add(new TeamFilterItem { Name = team.Name, Team = team });
                 }
+
+                // restore selection
+                SelectedTeamFilter =
+                    TeamFilters.FirstOrDefault(t => t.Team?.Id == previousSelectedTeamId)
+                    ?? TeamFilters.FirstOrDefault();
             }
         }
 
@@ -112,21 +123,32 @@ namespace TaskManager.ViewModels
             var query = _context.Tasks
                 .Include(t => t.AssignedTo)
                 .Include(t => t.CreatedBy)
+                .Include(t => t.Team)
                 .AsQueryable();
 
             if (_authService.CurrentUser != null)
             {
                 var currentUserId = _authService.CurrentUser.Id;
 
-                if (SelectedTeam != null)
+                var selectedTeam = SelectedTeamFilter?.Team;
+                if (selectedTeam != null)
                 {
-                    var teamId = SelectedTeam.Id;
-                    query = query.Where(t => t.TeamId == teamId);
+                    var teamId = selectedTeam.Id;
+                    var isOwner = selectedTeam.OwnerId == currentUserId;
+                    if (isOwner)
+                    {
+                        query = query.Where(t => t.TeamId == teamId);
+                    }
+                    else
+                    {
+                        // Members see only tasks assigned to them within the team.
+                        query = query.Where(t => t.TeamId == teamId && t.AssignedToId == currentUserId);
+                    }
                 }
                 else
                 {
-                    // Исправлено: без оператора ?.
-                    query = query.Where(t => t.AssignedToId == currentUserId || t.CreatedById == currentUserId);
+                    // Personal scope: only tasks not tied to a team.
+                    query = query.Where(t => t.TeamId == null && (t.AssignedToId == currentUserId || t.CreatedById == currentUserId));
                 }
             }
 
@@ -159,6 +181,8 @@ namespace TaskManager.ViewModels
         public void AddTask(Models.Task task)
         {
             task.CreatedById = _authService.CurrentUser!.Id;
+            task.AssignedToId ??= _authService.CurrentUser!.Id;
+            task.PlannedEndAt = task.PlannedEndAt == default ? DateTime.Now.AddDays(7) : task.PlannedEndAt;
             _context.Tasks.Add(task);
             _context.SaveChanges();
             LoadTasks();
@@ -167,6 +191,14 @@ namespace TaskManager.ViewModels
         public void UpdateTask(TaskViewModel taskVm)
         {
             taskVm.Task.UpdatedAt = DateTime.Now;
+            if (taskVm.Task.Status == TaskState.Done)
+            {
+                taskVm.Task.CompletedAt ??= DateTime.Now;
+            }
+            else
+            {
+                taskVm.Task.CompletedAt = null;
+            }
             _context.Entry(taskVm.Task).State = EntityState.Modified;
             _context.SaveChanges();
             LoadTasks();

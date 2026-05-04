@@ -16,6 +16,9 @@ namespace TaskManager.Models
         public int OrganizationId { get; set; }
         public virtual Organization Organization { get; set; } = null!;
 
+        public int OwnerId { get; set; }
+        public virtual User Owner { get; set; } = null!;
+
         public virtual ICollection<User> Members { get; set; } = new List<User>();
         public virtual ICollection<Models.Task> Tasks { get; set; } = new List<Models.Task>();
     }

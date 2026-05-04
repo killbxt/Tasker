@@ -6,59 +6,47 @@
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid>
-        <Grid.Background>
-            <LinearGradientBrush EndPoint="1,1" StartPoint="0,0">
-                <GradientStop Color="#1a1a2e" Offset="0"/>
-                <GradientStop Color="#16213e" Offset="1"/>
-            </LinearGradientBrush>
-        </Grid.Background>
+    <Grid Background="{StaticResource AppBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="420"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <Grid Width="400" VerticalAlignment="Center">
-            <Border Background="{DynamicResource MaterialDesignCardBackground}" 
-                    CornerRadius="16" Padding="32">
-                <StackPanel>
-                    <materialDesign:PackIcon Kind="AccountPlus" 
-                                           Width="64" Height="64" 
-                                           Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                           HorizontalAlignment="Center"/>
-
-                    <TextBlock Text="Регистрация" 
-                               FontSize="28" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Margin="0,20,0,30"/>
-
-                    <TextBox x:Name="UsernameTextBox" 
-                             materialDesign:HintAssist.Hint="Имя пользователя"
-                             Margin="0,0,0,16"
-                             Style="{StaticResource MaterialDesignFilledTextBox}"/>
-
-                    <TextBox x:Name="EmailTextBox" 
-                             materialDesign:HintAssist.Hint="Email"
-                             Margin="0,0,0,16"
-                             Style="{StaticResource MaterialDesignFilledTextBox}"/>
-
-                    <PasswordBox x:Name="PasswordBox" 
-                                 materialDesign:HintAssist.Hint="Пароль"
-                                 Margin="0,0,0,16"
-                                 Style="{StaticResource MaterialDesignFilledPasswordBox}"/>
-
-                    <PasswordBox x:Name="ConfirmPasswordBox" 
-                                 materialDesign:HintAssist.Hint="Подтвердите пароль"
-                                 Margin="0,0,0,24"
-                                 Style="{StaticResource MaterialDesignFilledPasswordBox}"/>
-
-                    <Button Content="Зарегистрироваться" 
-                            Click="RegisterButton_Click"
-                            Margin="0,0,0,12"
-                            Height="40"/>
-
-                    <Button Content="Назад к входу" 
-                            Click="BackButton_Click"
-                            Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Height="40"/>
+        <Border Grid.Column="1" Style="{StaticResource AppPanelStyle}" VerticalAlignment="Center">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,18">
+                    <materialDesign:PackIcon Kind="AccountPlus" Width="28" Height="28" Foreground="{DynamicResource PrimaryHueMidBrush}" />
+                    <TextBlock Text="Tasker" FontSize="20" FontWeight="Bold" Margin="10,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
-            </Border>
-        </Grid>
+
+                <TextBlock Text="Регистрация" FontSize="24" FontWeight="Bold" Margin="0,0,0,6"/>
+                <TextBlock Text="Создайте аккаунт для работы с задачами." Opacity="0.75" Margin="0,0,0,18"/>
+
+                <TextBox x:Name="UsernameTextBox"
+                         materialDesign:HintAssist.Hint="Имя пользователя"
+                         Margin="0,0,0,12"/>
+
+                <TextBox x:Name="EmailTextBox"
+                         materialDesign:HintAssist.Hint="Email"
+                         Margin="0,0,0,12"/>
+
+                <PasswordBox x:Name="PasswordBox"
+                             materialDesign:HintAssist.Hint="Пароль"
+                             Margin="0,0,0,12"/>
+
+                <PasswordBox x:Name="ConfirmPasswordBox"
+                             materialDesign:HintAssist.Hint="Подтвердите пароль"
+                             Margin="0,0,0,18"/>
+
+                <Button Content="Создать аккаунт"
+                        Click="RegisterButton_Click"
+                        Margin="0,0,0,10"/>
+
+                <Button Content="Назад ко входу"
+                        Click="BackButton_Click"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

@@ -2,6 +2,7 @@
 
 namespace TaskManager.Models
 {
+    [Obsolete("Invites by token/confirmation are removed. This entity will be deleted after migration cleanup.")]
     public class Invitation
     {
         [Key]
@@ -18,13 +19,5 @@ namespace TaskManager.Models
 
         public int InvitedById { get; set; }
         public virtual User InvitedBy { get; set; } = null!;
-
-        public string Token { get; set; } = Guid.NewGuid().ToString();
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime ExpiresAt { get; set; } = DateTime.Now.AddDays(7);
-
-        public bool IsUsed { get; set; } = false;
     }
 }

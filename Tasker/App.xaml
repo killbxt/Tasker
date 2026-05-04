@@ -6,18 +6,29 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" 
-                                            PrimaryColor="LightBlue" 
-                                            SecondaryColor="Teal" />
+                <!-- VS Code-like dark theme -->
+                <materialDesign:BundledTheme BaseTheme="Dark"
+                                            PrimaryColor="Grey"
+                                            SecondaryColor="Blue" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Стили для кнопок -->
-            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}"/>
+            <!-- App-level surfaces -->
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FF1E1E1E"/>
+            <SolidColorBrush x:Key="AppPanelBrush" Color="#FF252526"/>
+            <SolidColorBrush x:Key="AppBorderBrush" Color="#FF3C3C3C"/>
+
+            <Style TargetType="Window" BasedOn="{StaticResource MaterialDesignWindow}">
+                <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
+            </Style>
+
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Height" Value="36"/>
+                <Setter Property="Padding" Value="12,6"/>
+            </Style>
             <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignFilledTextBox}"/>
             <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignFilledPasswordBox}"/>
 
-            <!-- Стиль для карточки задачи -->
             <Style x:Key="TaskCardStyle" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource MaterialDesignCardBackground}"/>
                 <Setter Property="CornerRadius" Value="8"/>
@@ -28,6 +39,14 @@
                         <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2"/>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <Style x:Key="AppPanelStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource AppPanelBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="Padding" Value="20"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

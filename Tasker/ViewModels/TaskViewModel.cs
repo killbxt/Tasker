@@ -57,20 +57,53 @@ namespace TaskManager.ViewModels
             }
         }
 
-        public DateTime DueDate
+        public DateTime? PlannedStartAt
         {
-            get => _task.DueDate;
+            get => _task.PlannedStartAt;
             set
             {
-                _task.DueDate = value;
+                _task.PlannedStartAt = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(PlannedWindowText));
+                OnPropertyChanged(nameof(IsOverdue));
+            }
+        }
+
+        public DateTime PlannedEndAt
+        {
+            get => _task.PlannedEndAt;
+            set
+            {
+                _task.PlannedEndAt = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PlannedWindowText));
                 OnPropertyChanged(nameof(IsOverdue));
             }
         }
 
         public string PriorityColor => Priority == Models.TaskPriority.Urgent ? "#FF5252" : "#2196F3";
 
-        public bool IsOverdue => DueDate < DateTime.Now && Status != Models.TaskState.Done;
+        public string PlannedWindowText
+        {
+            get
+            {
+                var end = PlannedEndAt;
+                if (PlannedStartAt == null)
+                {
+                    return end.ToString("dd.MM.yyyy HH:mm");
+                }
+
+                var start = PlannedStartAt.Value;
+                if (start.Date == end.Date)
+                {
+                    return $"{start:dd.MM.yyyy HH:mm}–{end:HH:mm}";
+                }
+
+                return $"{start:dd.MM.yyyy HH:mm}–{end:dd.MM.yyyy HH:mm}";
+            }
+        }
+
+        public bool IsOverdue => PlannedEndAt < DateTime.Now && Status != Models.TaskState.Done;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

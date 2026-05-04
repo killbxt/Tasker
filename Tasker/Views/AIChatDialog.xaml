@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="🤖 AI Помощник" Height="600" Width="550"
+        Title="AI помощник" Height="600" Width="550"
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
@@ -13,12 +13,15 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="{DynamicResource PrimaryHueMidBrush}" 
-                CornerRadius="8" Padding="12" Margin="0,0,0,16">
-            <TextBlock Text="🤖 AI Ассистент по задачам" 
-                       FontSize="18" FontWeight="Bold"
-                       Foreground="black"
-                       HorizontalAlignment="Center"/>
+        <Border Grid.Row="0"
+                Background="{StaticResource AppPanelBrush}"
+                BorderBrush="{StaticResource AppBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10" Padding="12" Margin="0,0,0,16">
+            <DockPanel>
+                <materialDesign:PackIcon Kind="Robot" Width="20" Height="20" Margin="0,0,8,0" DockPanel.Dock="Left"/>
+                <TextBlock Text="AI помощник" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+            </DockPanel>
         </Border>
 
         <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer" 
@@ -55,14 +58,12 @@
 
             <TextBox x:Name="MessageTextBox" 
                      materialDesign:HintAssist.Hint="Напишите сообщение..."
-                     Style="{StaticResource MaterialDesignFilledTextBox}"
                      KeyDown="MessageTextBox_KeyDown"/>
 
             <Button Grid.Column="1" 
-                    Content="📤 Отправить" 
+                    Content="Отправить"
                     Click="SendButton_Click"
                     Margin="8,0,0,0"
-                    Height="40"
                     Width="100"
                     Style="{StaticResource MaterialDesignRaisedButton}"/>
         </Grid>

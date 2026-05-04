@@ -30,11 +30,21 @@ namespace TaskManager.Models
 
         public TaskPriority Priority { get; set; } = TaskPriority.Normal;
 
-        public DateTime DueDate { get; set; }
+        /// <summary>
+        /// Planned execution window start (local time).
+        /// </summary>
+        public DateTime? PlannedStartAt { get; set; }
+
+        /// <summary>
+        /// Planned execution window end (local time).
+        /// </summary>
+        public DateTime PlannedEndAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }
+
+        public DateTime? CompletedAt { get; set; }
 
         public int CreatedById { get; set; }
         public virtual User CreatedBy { get; set; } = null!;

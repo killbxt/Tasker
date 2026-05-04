@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}">
 
-    <Grid Margin="16">
+    <Grid Margin="16" Background="{StaticResource AppBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,55 +15,60 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="👥 Управление командами и организацией" 
+        <TextBlock Text="Управление командами и организацией" 
                    FontSize="20" FontWeight="Bold"
                    Margin="0,0,0,16"/>
 
         <!-- Моя организация -->
-        <Border Grid.Row="1" Background="{DynamicResource MaterialDesignPaper}" 
-                CornerRadius="8" Padding="12" Margin="0,0,0,16">
+        <Border Grid.Row="1" Style="{StaticResource AppPanelStyle}" Margin="0,0,0,16">
             <StackPanel>
-                <TextBlock Text="🏢 Моя организация" FontWeight="Bold" Margin="0,0,0,8"/>
+                <TextBlock Text="Моя организация" FontWeight="Bold" Margin="0,0,0,8"/>
                 <TextBlock x:Name="OrganizationInfoText" FontSize="14"/>
-                <Button x:Name="CreateOrgButton" Content="➕ Создать организацию" 
+                <Button x:Name="CreateOrgButton" Content="Создать организацию" 
                         Click="CreateOrganization_Click"
                         Style="{StaticResource MaterialDesignRaisedButton}"
                         Margin="0,8,0,0"/>
-                <Button x:Name="ManageMembersButton" Content="👥 Управление участниками" 
+                <Button x:Name="ManageMembersButton" Content="Управление участниками" 
                         Click="ManageMembers_Click"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Margin="0,8,0,0"
                         Visibility="Collapsed"/>
-                <Button x:Name="AcceptInviteButton" Content="🔑 Принять приглашение" 
-                        Click="AcceptInvitation_Click"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        Margin="0,8,0,0"/>
             </StackPanel>
         </Border>
 
         <!-- Создание команды -->
-        <Border Grid.Row="2" Background="{DynamicResource MaterialDesignPaper}" 
-                CornerRadius="8" Padding="12" Margin="0,0,0,16">
-            <StackPanel>
-                <TextBlock Text="👥 Создание команды" FontWeight="Bold" Margin="0,0,0,8"/>
-                <TextBox x:Name="TeamNameTextBox" 
-                         materialDesign:HintAssist.Hint="Название команды"
-                         Margin="0,0,0,8"/>
-                <TextBox x:Name="TeamDescTextBox" 
-                         materialDesign:HintAssist.Hint="Описание команды"
-                         Margin="0,0,0,8"/>
-                <Button Content="➕ Создать команду" 
-                        Click="CreateTeam_Click"
-                        Style="{StaticResource MaterialDesignRaisedButton}"/>
-            </StackPanel>
+        <Border Grid.Row="2" Style="{StaticResource AppPanelStyle}" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="Новая команда" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TeamNameTextBox"
+                             materialDesign:HintAssist.Hint="Название"
+                             Margin="0,0,0,8"/>
+                    <TextBox x:Name="TeamDescTextBox"
+                             materialDesign:HintAssist.Hint="Описание (опционально)"
+                             Margin="0,0,0,8"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="12,0,0,0">
+                    <Button Content="Создать"
+                            Click="CreateTeam_Click"
+                            Width="120"
+                            Style="{StaticResource MaterialDesignRaisedButton}"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Мои команды -->
-        <TextBlock Grid.Row="3" Text="📋 Мои команды" FontWeight="Bold" Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="3" Text="Мои команды" FontWeight="Bold" Margin="0,0,0,8"/>
         <ListBox Grid.Row="3" x:Name="TeamsListBox" Margin="0,0,0,16">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border Padding="12" Margin="4" Background="{DynamicResource MaterialDesignPaper}" CornerRadius="8">
+                    <Border Padding="12" Margin="4" Background="{StaticResource AppPanelBrush}" BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="10">
                         <StackPanel>
                             <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
                             <TextBlock Text="{Binding Description}" FontSize="11" 
