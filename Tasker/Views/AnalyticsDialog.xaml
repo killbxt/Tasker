@@ -3,14 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:controls="clr-namespace:TaskManager.Controls"
-        Title="Аналитика" Height="520" Width="720"
+        Title="Аналитика" Height="640" Width="880"
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource TaskerChromeWindow}">
 
     <Grid Margin="{StaticResource AppPadHalfRem}" Background="{StaticResource VsCodeEditorBg}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -18,54 +16,167 @@
 
         <controls:WindowTitleBar Grid.Row="0" TitleText="Аналитика"/>
 
-        <TextBlock x:Name="ScopeTitle"
-                   Grid.Row="1"
-                   Margin="0,6,0,10"
-                   FontWeight="SemiBold"
-                   TextWrapping="Wrap"/>
+        <TabControl x:Name="AnalyticsTabs" Grid.Row="1" Margin="0,8,0,8" Background="Transparent">
+            <TabItem Header="Моя статистика">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <UniformGrid Grid.Row="2" Rows="1" Columns="3">
-            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,10">
-                <StackPanel>
-                    <TextBlock Text="Закрыто всего" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
-                    <TextBlock x:Name="TotalDoneText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,10">
-                <StackPanel>
-                    <TextBlock Text="За 7 дней" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
-                    <TextBlock x:Name="Done7DaysText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,0,10">
-                <StackPanel>
-                    <TextBlock Text="Среднее время" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
-                    <TextBlock x:Name="AvgLeadTimeText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
-                </StackPanel>
-            </Border>
-        </UniformGrid>
+                    <TextBlock Grid.Row="0"
+                               Text="Сколько задач вы закрыли в каждой области (личные и команды, где вы исполнитель)."
+                               Foreground="{StaticResource VsCodeForegroundMuted}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,8"/>
 
-        <Border Grid.Row="3" Style="{StaticResource AppPanelStyle}" Margin="0,0,0,8">
-            <StackPanel>
-                <TextBlock Text="Топ исполнителей (закрыто)" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <ItemsControl x:Name="TopAssigneesList" HorizontalContentAlignment="Stretch">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border BorderBrush="{StaticResource VsCodeBorder}" BorderThickness="0,0,0,1" Padding="0,8"
-                                    HorizontalAlignment="Stretch">
-                                <DockPanel LastChildFill="True">
-                                    <TextBlock Text="{Binding Count}" DockPanel.Dock="Right" FontWeight="SemiBold"
-                                               Foreground="{StaticResource VsCodeAccentBlue}" Margin="12,0,0,0"/>
-                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
-                                </DockPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </Border>
+                    <DataGrid x:Name="MyStatsGrid"
+                              Grid.Row="1"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="{StaticResource VsCodeBorder}"
+                              Background="{StaticResource VsCodePanelBg}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Область" Binding="{Binding WorkspaceName}" Width="*"/>
+                            <DataGridTextColumn Header="Выполнено всего" Binding="{Binding CompletedTotal}" Width="120"/>
+                            <DataGridTextColumn Header="За 7 дней" Binding="{Binding CompletedLast7Days}" Width="88"/>
+                            <DataGridTextColumn Header="За 30 дней" Binding="{Binding CompletedLast30Days}" Width="92"/>
+                            <DataGridTextColumn Header="В работе" Binding="{Binding InProgressNow}" Width="80"/>
+                            <DataGridTextColumn Header="Просрочено сейчас" Binding="{Binding OpenOverdueNow}" Width="120"/>
+                            <DataGridTextColumn Header="Срочных сделано" Binding="{Binding UrgentDoneTotal}" Width="110"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
-        <Border Grid.Row="4"
+                    <TextBlock x:Name="BoardScopeHint"
+                               Grid.Row="2"
+                               Margin="0,12,0,6"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+
+                    <UniformGrid Grid.Row="3" Rows="1" Columns="3">
+                        <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Закрыто (область на доске)" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
+                                <TextBlock x:Name="TotalDoneText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AppPanelStyle}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="За 7 дней" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
+                                <TextBlock x:Name="Done7DaysText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AppPanelStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Среднее время" Foreground="{StaticResource VsCodeForegroundMuted}" FontSize="12"/>
+                                <TextBlock x:Name="AvgLeadTimeText" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Border Grid.Row="4" Style="{StaticResource AppPanelStyle}" Margin="0,8,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Топ исполнителей (закрыто, та же область)" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <ItemsControl x:Name="TopAssigneesList" HorizontalContentAlignment="Stretch">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource VsCodeBorder}" BorderThickness="0,0,0,1" Padding="0,8"
+                                                HorizontalAlignment="Stretch">
+                                            <DockPanel LastChildFill="True">
+                                                <TextBlock Text="{Binding Count}" DockPanel.Dock="Right" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource VsCodeAccentBlue}" Margin="12,0,0,0"/>
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem x:Name="OwnerTab" Header="По организации (владелец)">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource VsCodeForegroundMuted}"
+                               Margin="0,0,0,8"
+                               Text="Выберите команду (рабочую область), период завершения задач и нажмите «Обновить». Для каждого участника: сколько задач закрыто в периоде и показатели просрочки по этой команде."/>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+                        <ComboBox x:Name="OwnerTeamCombo"
+                                  Width="280"
+                                  materialDesign:HintAssist.Hint="Команда"
+                                  materialDesign:HintAssist.IsFloating="True"
+                                  DisplayMemberPath="Name"
+                                  Margin="0,0,12,0"
+                                  VerticalAlignment="Bottom"/>
+                        <DatePicker x:Name="OwnerFromPicker"
+                                    Width="150"
+                                    materialDesign:HintAssist.Hint="С даты"
+                                    materialDesign:HintAssist.IsFloating="True"
+                                    Margin="0,0,12,0"
+                                    VerticalAlignment="Bottom"/>
+                        <DatePicker x:Name="OwnerToPicker"
+                                    Width="150"
+                                    materialDesign:HintAssist.Hint="По дату"
+                                    materialDesign:HintAssist.IsFloating="True"
+                                    Margin="0,0,12,0"
+                                    VerticalAlignment="Bottom"/>
+                        <Button x:Name="OwnerRefreshButton"
+                                Content="Обновить"
+                                Click="OwnerRefresh_Click"
+                                VerticalAlignment="Bottom"
+                                Style="{StaticResource VsCodePrimaryButton}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2"
+                               Text="«Открытых просрочек на конец периода» — не готово к сроку. «Закрыто с опозданием» — завершено в периоде позже PlannedEnd. Сумма — все нарушения срока в выбранных границах."
+                               Foreground="{StaticResource VsCodeForegroundMuted}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,8"/>
+
+                    <DataGrid x:Name="OwnerPeriodGrid"
+                              Grid.Row="3"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              BorderBrush="{StaticResource VsCodeBorder}"
+                              Background="{StaticResource VsCodePanelBg}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Участник" Binding="{Binding Username}" Width="*"/>
+                            <DataGridTextColumn Header="Закрыто за период" Binding="{Binding CompletedInPeriod}" Width="130"/>
+                            <DataGridTextColumn Header="Открытых просрочек на конец" Binding="{Binding OpenOverdueAtPeriodEnd}" Width="200"/>
+                            <DataGridTextColumn Header="Закрыто с опозданием" Binding="{Binding LateCompletedInPeriod}" Width="160"/>
+                            <DataGridTextColumn Header="Всего нарушений срока" Binding="{Binding TotalDueBreaches}" Width="160"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Border Grid.Row="2"
                 Background="{StaticResource VsCodeTitleBarBg}"
                 BorderBrush="{StaticResource VsCodeBorderSubtle}"
                 BorderThickness="0,1,0,0"

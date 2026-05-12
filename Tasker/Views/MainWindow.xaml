@@ -165,9 +165,8 @@
                             Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                         <materialDesign:PackIcon Kind="AccountOutline" Width="16" Height="16"/>
                     </Button>
-                    <Button Command="{Binding OpenAnalyticsCommand}" ToolTip="Аналитика"
-                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                            Visibility="{Binding CanUsePowerFeatures, Converter={StaticResource BoolToVis}}">
+                    <Button Command="{Binding OpenAnalyticsCommand}" ToolTip="Аналитика по задачам"
+                            Style="{StaticResource VsCodeIconButton}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                         <materialDesign:PackIcon Kind="ChartBar" Width="16" Height="16"/>
                     </Button>
                     <Button Command="{Binding OpenOverdueReportCommand}" ToolTip="Просрочки по организации (владелец)"

@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using System.Windows;
+using System.Windows.Controls;
 using TaskManager.Data;
 using TaskManager.Models;
 using TaskManager.Services;
@@ -9,112 +9,114 @@ namespace TaskManager.Views
     public partial class AnalyticsDialog : Window
     {
         private readonly AuthService _authService;
-        private readonly Team? _selectedTeam;
+        private readonly Team? _selectedTeamFromBoard;
         private readonly ApplicationDbContext _context;
 
-        public AnalyticsDialog(AuthService authService, Team? selectedTeam)
+        public AnalyticsDialog(AuthService authService, Team? selectedTeamFromBoard)
         {
             InitializeComponent();
             _authService = authService;
-            _selectedTeam = selectedTeam;
+            _selectedTeamFromBoard = selectedTeamFromBoard;
             _context = new ApplicationDbContext();
+            Closed += (_, _) => _context.Dispose();
 
-            if (_authService.CurrentUser == null ||
-                !WorkspacePermissions.CanUsePowerFeatures(_context, _authService.CurrentUser.Id))
+            if (_authService.CurrentUser == null)
             {
-                MessageBox.Show(
-                    "Аналитика доступна только владельцу организации.",
-                    "Нет доступа",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
                 Close();
                 return;
             }
 
-            LoadAnalytics();
+            var isOrgOwner = WorkspacePermissions.IsOrganizationOwner(_context, _authService.CurrentUser.Id);
+            if (!isOrgOwner)
+            {
+                OwnerTab.Visibility = Visibility.Collapsed;
+            }
+
+            OwnerFromPicker.SelectedDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            OwnerToPicker.SelectedDate = DateTime.Today;
+
+            if (isOrgOwner)
+            {
+                var teams = WorkspaceAnalyticsService.GetOrganizationTeamsForOwner(_context, _authService.CurrentUser.Id)
+                    .ToList();
+                OwnerTeamCombo.ItemsSource = teams;
+                if (teams.Count > 0)
+                {
+                    var pre = _selectedTeamFromBoard != null
+                        ? teams.FirstOrDefault(t => t.Id == _selectedTeamFromBoard.Id)
+                        : null;
+                    OwnerTeamCombo.SelectedItem = pre ?? teams[0];
+                }
+            }
+
+            LoadMyTab();
+            if (isOrgOwner)
+            {
+                OwnerRefresh_Click(this, new RoutedEventArgs());
+            }
         }
 
-        private void LoadAnalytics()
+        private void LoadMyTab()
         {
             var user = _authService.CurrentUser;
             if (user == null)
             {
-                Close();
                 return;
             }
 
-            var userId = user.Id;
+            var rows = WorkspaceAnalyticsService.GetMyWorkspaceStats(_context, user.Id);
+            MyStatsGrid.ItemsSource = rows;
 
-            IQueryable<Models.Task> query = _context.Tasks
-                .Include(t => t.AssignedTo)
-                .Where(t => t.Status == TaskState.Done);
-
-            if (_selectedTeam != null)
+            var team = _selectedTeamFromBoard;
+            if (team != null)
             {
-                var team = _context.Teams.AsNoTracking().FirstOrDefault(t => t.Id == _selectedTeam.Id);
-                if (team == null)
-                {
-                    ScopeTitle.Text = "Аналитика";
-                    return;
-                }
-
-                ScopeTitle.Text = $"Аналитика: {team.Name}";
-
-                if (team.OwnerId == userId)
-                {
-                    query = query.Where(t => t.TeamId == team.Id);
-                }
-                else
-                {
-                    query = query.Where(t => t.TeamId == team.Id && t.AssignedToId == userId);
-                }
+                BoardScopeHint.Text = $"Сводка по области на доске: {team.Name}";
             }
             else
             {
-                ScopeTitle.Text = "Аналитика: личные задачи";
-                query = query.Where(t => t.TeamId == null && (t.AssignedToId == userId || t.CreatedById == userId));
+                BoardScopeHint.Text = "Сводка по области на доске: личные задачи";
             }
 
-            var tasks = query.ToList();
-
-            var totalDone = tasks.Count;
-            TotalDoneText.Text = totalDone.ToString();
-
-            var since = DateTime.Now.AddDays(-7);
-            var done7 = tasks.Count(t => (t.CompletedAt ?? t.UpdatedAt ?? t.CreatedAt) >= since);
+            var (total, done7, avgHours, top) =
+                WorkspaceAnalyticsService.GetLegacyBoardDoneStats(_context, user.Id, team);
+            TotalDoneText.Text = total.ToString();
             Done7DaysText.Text = done7.ToString();
-
-            var leadTimes = tasks
-                .Where(t => t.CompletedAt != null)
-                .Select(t => (t.CompletedAt!.Value - t.CreatedAt).TotalHours)
-                .Where(h => h >= 0 && h < 24 * 365)
-                .ToList();
-
-            if (leadTimes.Count == 0)
+            if (avgHours == null)
             {
                 AvgLeadTimeText.Text = "—";
             }
             else
             {
-                var avgHours = leadTimes.Average();
                 AvgLeadTimeText.Text = avgHours >= 48
-                    ? $"{avgHours / 24:0.#} дн"
-                    : $"{avgHours:0.#} ч";
+                    ? $"{avgHours.Value / 24:0.#} дн"
+                    : $"{avgHours.Value:0.#} ч";
             }
 
-            var top = tasks
-                .Where(t => t.AssignedTo != null)
-                .GroupBy(t => new { t.AssignedTo!.Id, t.AssignedTo!.Username })
-                .Select(g => new { Name = g.Key.Username, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
-                .ThenBy(x => x.Name)
-                .Take(8)
-                .ToList();
+            TopAssigneesList.ItemsSource = top.Select(x => new { x.Name, Count = x.Count }).ToList();
+        }
 
-            TopAssigneesList.ItemsSource = top;
+        private void OwnerRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            var user = _authService.CurrentUser;
+            if (user == null || OwnerTeamCombo.SelectedItem is not Team team)
+            {
+                OwnerPeriodGrid.ItemsSource = null;
+                return;
+            }
+
+            var from = OwnerFromPicker.SelectedDate ?? DateTime.Today.AddDays(-30);
+            var to = OwnerToPicker.SelectedDate ?? DateTime.Today;
+            if (to < from)
+            {
+                MessageBox.Show("Дата «по» не может быть раньше даты «с».", "Период", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var stats = WorkspaceAnalyticsService.GetTeamMemberPeriodStats(_context, user.Id, team.Id, from, to);
+            OwnerPeriodGrid.ItemsSource = stats;
         }
 
         private void Close_Click(object sender, RoutedEventArgs e) => Close();
     }
 }
-

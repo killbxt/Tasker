@@ -200,16 +200,6 @@ namespace TaskManager.Views
                 return;
             }
 
-            if (!_viewModel.CanUsePowerFeatures)
-            {
-                MessageBox.Show(
-                    "Аналитика доступна только владельцу организации.",
-                    "Нет доступа",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
-            }
-
             var dialog = new AnalyticsDialog(_authService, _viewModel.SelectedTeamFilter?.Team);
             dialog.Owner = this;
             dialog.ShowDialog();
