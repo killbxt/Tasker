@@ -12,8 +12,13 @@ namespace TaskManager.Services
         private User? _currentUser;
 
         public AuthService()
+            : this(new ApplicationDbContext())
         {
-            _context = new ApplicationDbContext();
+        }
+
+        public AuthService(ApplicationDbContext context)
+        {
+            _context = context;
         }
 
         public User? CurrentUser => _currentUser;

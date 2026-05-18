@@ -5,6 +5,15 @@ namespace TaskManager.Data
 {
     public class ApplicationDbContext : DbContext
     {
+        public ApplicationDbContext()
+        {
+        }
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Team> Teams { get; set; }
@@ -12,7 +21,10 @@ namespace TaskManager.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=72.56.234.212;Database=tasker_db;User Id=tasker_developer;Password=tAsk!Man129032;TrustServerCertificate=True");
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer("Server=72.56.234.212;Database=tasker_db;User Id=tasker_developer;Password=tAsk!Man129032;TrustServerCertificate=True");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
